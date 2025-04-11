@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic_settings import BaseSettings, SettingsConfigDict, PostgresDsn
 
 ROOT_DIR = str(Path(__file__).parent.parent.parent)
 
@@ -8,11 +8,8 @@ ROOT_DIR = str(Path(__file__).parent.parent.parent)
 class AppSettings(BaseSettings):
     model_config = SettingsConfigDict(env_file=ROOT_DIR, env_file_encoding="utf-8")
 
-    # MongoDB configs
-    MONGO_DATABASE_HOST: str = (
-        "mongodb://mongo1:30001,mongo2:30002,mongo3:30003/?replicaSet=my-replica-set"
-    )
-    MONGO_DATABASE_NAME: str = "twin"
+    # Supabase config
+    SUPABASE_DB_URL: PostgresDsn
 
     # MQ config
     RABBITMQ_DEFAULT_USERNAME: str = "guest"
@@ -58,7 +55,6 @@ class AppSettings(BaseSettings):
     EMBEDDING_MODEL_DEVICE: str = "cpu"
 
     def patch_localhost(self) -> None:
-        self.MONGO_DATABASE_HOST = "mongodb://localhost:30001,localhost:30002,localhost:30003/?replicaSet=my-replica-set"
         self.QDRANT_DATABASE_HOST = "localhost"
         self.RABBITMQ_HOST = "localhost"
 
