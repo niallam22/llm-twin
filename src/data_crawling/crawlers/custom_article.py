@@ -1,7 +1,9 @@
+import asyncio
+from typing import Optional
 from urllib.parse import urlparse
 
 from aws_lambda_powertools import Logger
-from core.db.documents import ArticleDocument
+from core.db.documents import ArticleDocument, UserDocument
 from langchain_community.document_loaders import AsyncHtmlLoader
 from langchain_community.document_transformers.html2text import Html2TextTransformer
 
@@ -16,17 +18,14 @@ class CustomArticleCrawler(BaseCrawler):
     def __init__(self) -> None:
         super().__init__()
 
-    def extract(self, link: str, **kwargs) -> None:
-        old_model = self.model.find(link=link)
-        if old_model is not None:
-            logger.info(f"Article already exists in the database: {link}")
-
-            return
+    async def extract(self, link: str, user: Optional[UserDocument] = None) -> None:
+        # The check for existing documents is handled by save_documents -> get_or_create
+        # logger.info(f"Attempting to scrape article: {link}") # Optional: Change log message
 
         logger.info(f"Starting scrapping article: {link}")
 
         loader = AsyncHtmlLoader([link])
-        docs = loader.load()
+        docs = await loader.load()
 
         html2text = Html2TextTransformer()
         docs_transformed = html2text.transform_documents(docs)
@@ -46,8 +45,8 @@ class CustomArticleCrawler(BaseCrawler):
             content=content,
             link=link,
             platform=platform,
-            author_id=kwargs.get("user"),
+            author_id=user.id if user else None,
         )
-        instance.save()
+        await self.save_documents([instance])
 
         logger.info(f"Finished scrapping custom article: {link}")

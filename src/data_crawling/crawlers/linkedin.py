@@ -1,12 +1,13 @@
 import time
-from typing import Dict, List
+import asyncio
+from typing import Dict, List, Optional
 
 from aws_lambda_powertools import Logger
 from bs4 import BeautifulSoup
 from bs4.element import Tag
-from config import settings
-from core.db.documents import PostDocument
-from core.errors import ImproperlyConfigured
+from config import settings # Keep for login method for now
+from core.db.documents import PostDocument, UserDocument
+from core.errors import ImproperlyConfigured # Keep for login method for now
 from selenium.webdriver.common.by import By
 
 from crawlers.base import BaseAbstractCrawler
@@ -20,10 +21,9 @@ class LinkedInCrawler(BaseAbstractCrawler):
     def set_extra_driver_options(self, options) -> None:
         options.add_experimental_option("detach", True)
 
-    def extract(self, link: str, **kwargs):
-        raise DeprecationWarning(
-            "LinkedIn crawler is deprecated and no longer supported."
-        )
+    async def extract(self, link: str, user_info: Optional[dict] = None) -> None:
+        # Note: LinkedIn scraping is often against their ToS and brittle.
+        # This implementation retains the scraping logic but adapts saving.
 
         logger.info(f"Starting scrapping data for profile: {link}")
 
@@ -62,14 +62,39 @@ class LinkedInCrawler(BaseAbstractCrawler):
 
         self.driver.close()
 
-        self.model.bulk_insert(
-            [
-                PostDocument(
-                    platform="linkedin", content=post, author_id=kwargs.get("user")
-                )
-                for post in posts
-            ]
+        # Get or create the author UserDocument
+        # Assuming user_info might contain username or use link as identifier
+        username = user_info.get("username", f"linkedin_user_{link.split('/')[-2]}") if user_info else f"linkedin_user_{link.split('/')[-2]}"
+        platform_id = user_info.get("platform_id", link) if user_info else link # Use profile link as platform_id if not provided
+
+        author = await UserDocument.get_or_create(
+            username=username,
+            platform="linkedin",
+            platform_id=platform_id,
+            # Add other fields if available in user_info
         )
+
+        documents_to_save = []
+        # posts is Dict[str, Dict[str, str]] from _extract_posts
+        for post_key, post_data in posts.items():
+            content_str = post_data.get("text", "")
+            metadata = {"post_key": post_key} # Store original key
+            if "image" in post_data:
+                metadata["image_url"] = post_data["image"]
+
+            # TODO: Ideally, we'd have a unique URL per post, not just the profile link.
+            # Using profile link for now.
+            post_doc = PostDocument(
+                platform="linkedin",
+                content=content_str,
+                author_id=author.id,
+                url=link, # Using profile link as placeholder for post URL
+                metadata=metadata,
+            )
+            documents_to_save.append(post_doc)
+
+        if documents_to_save:
+            await self.save_documents(documents_to_save)
 
         logger.info(f"Finished scrapping data for profile: {link}")
 
@@ -92,8 +117,11 @@ class LinkedInCrawler(BaseAbstractCrawler):
         post_images = {}
         for i, button in enumerate(buttons):
             img_tag = button.find("img")
-            if img_tag and "src" in img_tag.attrs:
-                post_images[f"Post_{i}"] = img_tag["src"]
+            # Ensure img_tag is a Tag object before accessing attributes
+            if isinstance(img_tag, Tag) and img_tag.has_attr("src"):
+                src_url = img_tag.get("src")
+                if src_url: # Check if src attribute exists and is not empty
+                    post_images[f"Post_{i}"] = src_url
             else:
                 logger.warning("No image found in this button")
         return post_images

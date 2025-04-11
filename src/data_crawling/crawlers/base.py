@@ -1,6 +1,9 @@
 import time
 from abc import ABC, abstractmethod
 from tempfile import mkdtemp
+from typing import List
+
+from pydantic import BaseModel
 
 from core.db.documents import BaseDocument
 from selenium import webdriver
@@ -12,6 +15,10 @@ class BaseCrawler(ABC):
 
     @abstractmethod
     def extract(self, link: str, **kwargs) -> None: ...
+
+    async def save_documents(self, documents: List[BaseModel]) -> None:
+        """Saves a list of documents using the model's async bulk_insert."""
+        await self.model.bulk_insert(documents)
 
 
 class BaseAbstractCrawler(BaseCrawler, ABC):

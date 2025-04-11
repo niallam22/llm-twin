@@ -2,9 +2,11 @@ import os
 import shutil
 import subprocess
 import tempfile
+import asyncio
+from typing import Optional
 
 from aws_lambda_powertools import Logger
-from core.db.documents import RepositoryDocument
+from core.db.documents import RepositoryDocument, UserDocument
 
 from crawlers.base import BaseCrawler
 
@@ -18,7 +20,7 @@ class GithubCrawler(BaseCrawler):
         super().__init__()
         self._ignore = ignore
 
-    def extract(self, link: str, **kwargs) -> None:
+    async def extract(self, link: str, user_info: Optional[dict] = None) -> None:
         logger.info(f"Starting scrapping GitHub repository: {link}")
 
         repo_name = link.rstrip("/").split("/")[-1]
@@ -44,10 +46,26 @@ class GithubCrawler(BaseCrawler):
                     with open(os.path.join(root, file), "r", errors="ignore") as f:
                         tree[file_path] = f.read().replace(" ", "")
 
+            # Extract owner username from link
+            try:
+                owner_username = link.rstrip("/").split("/")[-2]
+            except IndexError:
+                logger.error(f"Could not extract owner username from link: {link}")
+                # Handle error appropriately, maybe raise or return
+                return # Or raise specific error
+
+            # Get or create the user document
+            user_document = await UserDocument.get_or_create(cls=UserDocument, username=owner_username)
+            if not user_document:
+                 logger.error(f"Could not get or create user: {owner_username}")
+                 # Handle error appropriately
+                 return # Or raise specific error
+
+
             instance = self.model(
-                name=repo_name, link=link, content=tree, owner_id=kwargs.get("user")
+                name=repo_name, link=link, content=tree, owner_id=user_document.id
             )
-            instance.save()
+            await self.save_documents([instance])
 
         except Exception:
             raise
