@@ -30,6 +30,9 @@ class GptCommunicator:
                 model=self.gpt_model,
             )
             response = chat_completion.choices[0].message.content
+            if response is None:
+                logger.warning("Received None response content from OpenAI API.")
+                return []
             return json.loads(self.clean_response(response))
         except Exception:
             logger.exception(

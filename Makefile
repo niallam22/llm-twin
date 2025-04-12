@@ -6,7 +6,7 @@ PYTHONPATH := $(shell pwd)/src
 
 install: # Create a local Poetry virtual environment and install all required Python dependencies.
 	poetry env use 3.11
-	poetry install --sync --without superlinked_rag
+	poetry install --sync --with feature_pipeline --without superlinked_rag
 
 help:
 	@grep -E '^[a-zA-Z0-9 -]+:.*#'  Makefile | sort | while read -r l; do printf "\033[1;32m$$(echo $$l | cut -f 1 -d':')\033[00m:$$(echo $$l | cut -f 2- -d'#')\n"; done

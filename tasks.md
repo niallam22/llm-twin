@@ -172,105 +172,128 @@ Release 2: CDC and Crawler Endpoint Refactoring
 
 Story 3: Implement Postgres LISTEN/NOTIFY CDC Mechanism
 
-[ ] Task 3.1.1: Define a PostgreSQL function (e.g., notify_data_change()) that takes no arguments, constructs a JSON payload containing the new row data (NEW.\*) along with table name and operation type ('INSERT'), and sends it using pg_notify('data_changes', payload::text).
+[x] Task 3.1.1: Define a PostgreSQL function (e.g., notify_data_change()) that takes no arguments, constructs a JSON payload containing the new row data (NEW.\*) along with table name and operation type ('INSERT'), and sends it using pg_notify('data_changes', payload::text).
 
 AC: The notify_data_change SQL function is created in the Supabase database.
 
-[ ] Task 3.1.2: Create a PostgreSQL TRIGGER on the articles table that executes the notify_data_change() function AFTER INSERT FOR EACH ROW.
+[x] Task 3.1.2: Create a PostgreSQL TRIGGER on the articles table that executes the notify_data_change() function AFTER INSERT FOR EACH ROW.
 
 AC: An AFTER INSERT trigger is attached to the articles table, calling the notification function.
 
-[ ] Task 3.1.3: Create a similar PostgreSQL TRIGGER on the posts table (AFTER INSERT).
+[x] Task 3.1.3: Create a similar PostgreSQL TRIGGER on the posts table (AFTER INSERT).
 
 AC: An AFTER INSERT trigger is attached to the posts table, calling the notification function.
 
-[ ] Task 3.1.4: Create a similar PostgreSQL TRIGGER on the repositories table (AFTER INSERT).
+[x] Task 3.1.4: Create a similar PostgreSQL TRIGGER on the repositories table (AFTER INSERT).
 
 AC: An AFTER INSERT trigger is attached to the repositories table, calling the notification function.
 
-[ ] Task 3.1.5: Test the trigger mechanism by manually inserting a row into articles using SQL and verifying that a notification appears on the data_changes channel (e.g., using LISTEN data_changes; in a separate psql session). Verify the JSON payload structure.
+[x] Task 3.1.5: Test the trigger mechanism by manually inserting a row into articles using SQL and verifying that a notification appears on the data_changes channel (e.g., using LISTEN data_changes; in a separate psql session). Verify the JSON payload structure.
 
 AC: Manually inserting data into triggered tables results in a correctly formatted JSON payload being sent via pg_notify on the data_changes channel.
 
-[ ] Task 3.2.1: Create a new directory src/cdc_listener/ and a file src/cdc_listener/listener.py.
+[x] Task 3.2.1: Create a new directory src/cdc_listener/ and a file src/cdc_listener/listener.py.
 
 AC: The directory src/cdc_listener/ and file listener.py exist.
 
-[ ] Task 3.2.2: In listener.py, implement async code to establish a connection to the Supabase Postgres DB using asyncpg and the SUPABASE_DB_URL from core.config.
+[x] Task 3.2.2: In listener.py, implement async code to establish a connection to the Supabase Postgres DB using asyncpg and the SUPABASE_DB_URL from core.config.
 
 AC: The listener script can successfully connect to the Supabase database asynchronously.
 
-[ ] Task 3.2.3: In listener.py, use the asyncpg connection to execute the LISTEN data_changes; command.
+[x] Task 3.2.3: In listener.py, use the asyncpg connection to execute the LISTEN data_changes; command.
 
 AC: The listener script successfully subscribes to the data_changes notification channel.
 
-[ ] Task 3.2.4: In listener.py, implement an asynchronous loop that waits for notifications using connection.add_listener and a callback function, or by iterating over connection.notifications().
+[x] Task 3.2.4: In listener.py, implement an asynchronous loop that waits for notifications using connection.add_listener and a callback function, or by iterating over connection.notifications().
 
 AC: The listener script can asynchronously receive notifications sent on the data_changes channel.
 
-[ ] Task 3.2.5: Inside the notification handling logic, parse the JSON payload received from the notification string. Add error handling for invalid JSON.
+[x] Task 3.2.5: Inside the notification handling logic, parse the JSON payload received from the notification string. Add error handling for invalid JSON.
 
 AC: The listener script successfully parses the JSON string payload from incoming notifications into a Python dictionary or object.
 
-[ ] Task 3.2.6: Import and reuse the RabbitMQ connection logic and publisher from src/core/mq.py within listener.py.
+[x] Task 3.2.6: Import and reuse the RabbitMQ connection logic and publisher from src/core/mq.py within listener.py.
 
 AC: The listener script can access RabbitMQ publishing functionality.
 
-[ ] Task 3.2.7: After successfully parsing the JSON payload, publish it as a message to the RabbitMQ queue previously used by the Bytewax pipeline (ensure queue name is configured correctly, e.g., via core.config). Serialize the payload back to JSON string or bytes for publishing.
+[x] Task 3.2.7: After successfully parsing the JSON payload, publish it as a message to the RabbitMQ queue previously used by the Bytewax pipeline (ensure queue name is configured correctly, e.g., via core.config). Serialize the payload back to JSON string or bytes for publishing.
 
 AC: When a notification is received and parsed, the listener script publishes the corresponding payload to the configured RabbitMQ queue.
 
-[ ] Task 3.2.8: Implement basic error handling and reconnection logic in listener.py for both the Postgres connection and the RabbitMQ connection. Log errors appropriately.
+[x] Task 3.2.8: Implement basic error handling and reconnection logic in listener.py for both the Postgres connection and the RabbitMQ connection. Log errors appropriately.
 
 AC: The listener script includes mechanisms to attempt reconnection if the database or message queue connection is lost.
 
-[ ] Task 3.3.1: Create a new Dockerfile .docker/Dockerfile.cdc_listener. Base it on a suitable Python image.
+[x] Task 3.3.1: Create a new Dockerfile .docker/Dockerfile.cdc_listener. Base it on a suitable Python image.
 
 AC: The file .docker/Dockerfile.cdc_listener exists.
 
-[ ] Task 3.3.2: In Dockerfile.cdc_listener, copy necessary source code (src/cdc_listener, src/core).
+[x] Task 3.3.2: In Dockerfile.cdc_listener, copy necessary source code (src/cdc_listener, src/core).
 
 AC: The Dockerfile includes instructions to copy required source code into the image.
 
-[ ] Task 3.3.3: In Dockerfile.cdc_listener, set up the Poetry environment and install dependencies using poetry install --no-root --no-dev. Ensure asyncpg and pika (or other MQ library) are installed.
+[x] Task 3.3.3: In Dockerfile.cdc_listener, set up the Poetry environment and install dependencies using poetry install --no-root --no-dev. Ensure asyncpg and pika (or other MQ library) are installed.
 
 AC: The Dockerfile correctly installs project dependencies using Poetry.
 
-[ ] Task 3.3.4: In Dockerfile.cdc_listener, set the CMD or ENTRYPOINT to run the src/cdc_listener/listener.py script.
+[x] Task 3.3.4: In Dockerfile.cdc_listener, set the CMD or ENTRYPOINT to run the src/cdc_listener/listener.py script.
 
 AC: The Dockerfile specifies the command to start the listener script when the container runs.
 
-[ ] Task 3.4.1: Add a new service named cdc-listener to docker-compose.yml. Configure it to build using the .docker/Dockerfile.cdc_listener context.
+[x] Task 3.4.1: Add a new service named cdc-listener to docker-compose.yml. Configure it to build using the .docker/Dockerfile.cdc_listener context.
 
 AC: A cdc-listener service definition is added to docker-compose.yml.
 
-[ ] Task 3.4.2: In the cdc-listener service definition in docker-compose.yml, set depends_on to include mq (RabbitMQ service) and postgres (if running Postgres locally).
+[x] Task 3.4.2: In the cdc-listener service definition in docker-compose.yml, set depends_on to include mq (RabbitMQ service) and postgres (if running Postgres locally).
 
 AC: The cdc-listener service specifies dependencies on RabbitMQ and the local Postgres service (if applicable).
 
-[ ] Task 3.4.3: Pass necessary environment variables to the cdc-listener service using the environment or env_file directive in docker-compose.yml (e.g., SUPABASE_DB_URL, RABBITMQ_URI, queue name).
+[x] Task 3.4.3: Pass necessary environment variables to the cdc-listener service using the environment or env_file directive in docker-compose.yml (e.g., SUPABASE_DB_URL, RABBITMQ_URI, queue name).
 
 AC: Required environment variables are passed to the cdc-listener container.
 
-[ ] Task 3.5.1: Delete the entire src/data_cdc directory.
+[x] Task 3.5.1: Delete the entire src/data_cdc directory.
 
 AC: The src/data_cdc directory no longer exists.
 
-[ ] Task 3.5.2: Delete the old CDC Dockerfile .docker/Dockerfile.data_cdc.
+[x] Task 3.5.2: Delete the old CDC Dockerfile .docker/Dockerfile.data_cdc.
 
 AC: The file .docker/Dockerfile.data_cdc no longer exists.
 
-[ ] Task 3.5.3: Remove the old data-cdc service definition from docker-compose.yml.
+[x] Task 3.5.3: Remove the old data-cdc service definition from docker-compose.yml.
 
 AC: The data-cdc service definition is removed from docker-compose.yml.
 
-[ ] Task 3.6.1: Ensure all necessary configuration for the new cdc-listener (DB URL, MQ URL, MQ queue name, Listen channel name 'data_changes') is present in .env and loaded via src/core/config.py.
+[x] Task 3.6.1: Ensure all necessary configuration for the new cdc-listener (DB URL, MQ URL, MQ queue name, Listen channel name 'data_changes') is present in .env and loaded via src/core/config.py.
 
 AC: Configuration loading includes all parameters needed by the new listener.
 
-[ ] Task 3.6.2: Remove any obsolete configuration settings related to MongoDB CDC (e.g., specific Mongo collection names for CDC) from .env and src/core/config.py.
+[x] Task 3.6.2: Remove any obsolete configuration settings related to MongoDB CDC (e.g., specific Mongo collection names for CDC) from .env and src/core/config.py.
 
 AC: Obsolete MongoDB CDC configuration is removed.
+
+[x] Task 3.2.9: Create a file src/cdc_listener/test_listener.py that performs a complete end-to-end test of the CDC mechanism. The script should:
+
+Establish a connection to the database
+Start listening to the data_changes channel in a separate thread/process
+Insert test data into each table (articles, posts, repositories) using SQL
+Wait for notifications with appropriate timeouts
+Log all received notifications
+Verify the payload structure and content matches the inserted data
+Generate a test report with PASS/FAIL status and detailed diagnostics
+
+AC: The test script produces a comprehensive report showing:
+
+Connection status to database
+Listener activation confirmation
+Successful data insertion into each table (with record IDs)
+Raw notification payloads received for each insert
+Validation results comparing payload data with inserted data
+Timing metrics (insertion to notification receipt)
+Any errors encountered during the process
+Overall PASS status only if notifications were correctly received for ALL test inserts
+
+The script should exit with code 0 if all tests pass and non-zero if any test fails, with detailed error information in STDERR.
 
 Story 4: Refactor Data Crawlers to FastAPI Endpoints
 

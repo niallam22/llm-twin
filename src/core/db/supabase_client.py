@@ -2,10 +2,9 @@
 import asyncpg
 import contextlib
 import logging
-import typing # Added for List and Any
 from typing import AsyncGenerator, Optional, List, Any # Added List and Any
 
-from src.core.config import settings
+from ..config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +22,7 @@ class SupabaseClient:
             try:
                 logger.info("Creating Supabase connection pool...")
                 self._pool = await asyncpg.create_pool(
-                    dsn=settings.supabase_db_url,
+                    dsn=settings.SUPABASE_DB_URL,
                     min_size=1,  # Minimum number of connections in the pool
                     max_size=10, # Maximum number of connections in the pool
                 )

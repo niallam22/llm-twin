@@ -2,7 +2,7 @@ import asyncio
 from typing import Optional
 from aws_lambda_powertools import Logger
 from bs4 import BeautifulSoup, Tag
-from core.db.documents import ArticleDocument, UserDocument, PostDocument # Assuming PostDocument might be needed, though ArticleDocument is used
+from core.db.documents import ArticleDocument, UserDocument # Assuming PostDocument might be needed, though ArticleDocument is used
 from selenium.webdriver.common.by import By
 
 from crawlers.base import BaseAbstractCrawler

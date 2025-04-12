@@ -1,21 +1,25 @@
 from pathlib import Path
 
-from pydantic_settings import BaseSettings, SettingsConfigDict, PostgresDsn
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ROOT_DIR = str(Path(__file__).parent.parent.parent)
 
-
 class AppSettings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=ROOT_DIR, env_file_encoding="utf-8")
+    model_config = SettingsConfigDict(env_file=f"{ROOT_DIR}/.env", env_file_encoding="utf-8")
+
 
     # Supabase config
-    SUPABASE_DB_URL: PostgresDsn
+    SUPABASE_DB_URL: str | None = 'postgresql://postgres:postgres@127.0.0.1:54322/postgres'
+    # SUPABASE_URL: str
+    # SUPABASE_KEY: str
+
 
     # MQ config
     RABBITMQ_DEFAULT_USERNAME: str = "guest"
     RABBITMQ_DEFAULT_PASSWORD: str = "guest"
     RABBITMQ_HOST: str = "mq"
     RABBITMQ_PORT: int = 5673
+    RABBITMQ_QUEUE_NAME: str = "data_changes_queue" # Default queue name for CDC
 
     # QdrantDB config
     QDRANT_CLOUD_URL: str = "str"
@@ -55,6 +59,7 @@ class AppSettings(BaseSettings):
     EMBEDDING_MODEL_DEVICE: str = "cpu"
 
     def patch_localhost(self) -> None:
+        # self.MONGO_DATABASE_HOST = "mongodb://localhost:30001,localhost:30002,localhost:30003/?replicaSet=my-replica-set" # Removed
         self.QDRANT_DATABASE_HOST = "localhost"
         self.RABBITMQ_HOST = "localhost"
 

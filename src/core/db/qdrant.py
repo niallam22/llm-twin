@@ -1,8 +1,8 @@
 from qdrant_client import QdrantClient, models
 from qdrant_client.http.models import Batch, Distance, VectorParams
 
-import core.logger_utils as logger_utils
-from core.config import settings
+from .. import logger_utils 
+from ..config import settings
 
 logger = logger_utils.get_logger(__name__)
 
@@ -24,14 +24,17 @@ class QdrantDatabaseConnector:
                 )
 
     def get_collection(self, collection_name: str):
+        assert self._instance is not None
         return self._instance.get_collection(collection_name=collection_name)
 
     def create_non_vector_collection(self, collection_name: str):
+        assert self._instance is not None
         self._instance.create_collection(
             collection_name=collection_name, vectors_config={}
         )
 
     def create_vector_collection(self, collection_name: str):
+        assert self._instance is not None
         self._instance.create_collection(
             collection_name=collection_name,
             vectors_config=VectorParams(
@@ -40,6 +43,7 @@ class QdrantDatabaseConnector:
         )
 
     def write_data(self, collection_name: str, points: Batch):
+        assert self._instance is not None
         try:
             self._instance.upsert(collection_name=collection_name, points=points)
         except Exception:
@@ -54,6 +58,7 @@ class QdrantDatabaseConnector:
         query_filter: models.Filter | None = None,
         limit: int = 3,
     ) -> list:
+        assert self._instance is not None
         return self._instance.search(
             collection_name=collection_name,
             query_vector=query_vector,
@@ -62,6 +67,7 @@ class QdrantDatabaseConnector:
         )
 
     def scroll(self, collection_name: str, limit: int):
+        assert self._instance is not None
         return self._instance.scroll(collection_name=collection_name, limit=limit)
 
     def close(self):

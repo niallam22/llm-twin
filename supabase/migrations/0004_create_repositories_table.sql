@@ -6,5 +6,5 @@ CREATE TABLE repositories (
     description TEXT,
     metadata JSONB,
     crawled_at TIMESTAMPTZ DEFAULT now(),
-    updated_repo_at TIMESTAMPTZ
+    published_at TIMESTAMPTZ
 );

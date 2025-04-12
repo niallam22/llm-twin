@@ -42,6 +42,18 @@ services:
       timeout: 5s
       retries: 5
 
+  cdc-listener:
+    container_name: llm-twin-cdc-listener
+    build:
+      context: .
+      dockerfile: .docker/Dockerfile.cdc_listener
+    env_file:
+      - .env
+    restart: always # Keep listener running
+    depends_on:
+      - postgres
+      - mq
+
   data-crawlers:
     image: "llm-twin-data-crawlers"
     container_name: llm-twin-data-crawlers
@@ -55,18 +67,6 @@ services:
       - "9010:8080"
     depends_on:
       - postgres
-
-  data_cdc:
-    image: "llm-twin-data-cdc"
-    container_name: llm-twin-data-cdc
-    build:
-      context: .
-      dockerfile: .docker/Dockerfile.data_cdc
-    env_file:
-      - .env
-    depends_on:
-      - postgres
-      - mq
 
   feature_pipeline:
     image: "llm-twin-feature-pipeline"

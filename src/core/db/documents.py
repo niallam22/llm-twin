@@ -7,11 +7,11 @@ from typing import List, Optional, Type, TypeVar
 
 from pydantic import UUID4, BaseModel, ConfigDict, Field
 
-from core.db.supabase_client import SupabaseClient # Import SupabaseClient
-import core.logger_utils as logger_utils
+from .supabase_client import SupabaseClient
+from .. import logger_utils
 
 # Generic type variable for Pydantic models
-T = TypeVar('T', bound='BaseModel')
+T = TypeVar('T', bound=BaseModel)
 
 
 logger = logger_utils.get_logger(__name__)
@@ -27,7 +27,7 @@ class UserDocument(BaseModel):
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
-    @staticmethod
+    @classmethod
     async def save(cls: Type[T], instance: T) -> T:
         """Saves (inserts or updates) a UserDocument instance to the database."""
         db_client = SupabaseClient()
@@ -74,20 +74,20 @@ class UserDocument(BaseModel):
                 updated_data = {**instance.model_dump(), **dict(record)}
                 return cls(**updated_data) # Re-create instance with DB data
             else:
-                logger.warning(f"Failed to save or retrieve record for UserDocument with id {instance.id}")
+                logger.warning(f"Failed to save or retrieve record for UserDocument with id {getattr(instance, 'id', 'unknown')}")
                 return instance # Return original instance on failure
 
         except asyncpg.PostgresError as e:
-            logger.error(f"Database error saving UserDocument with id {instance.id}: {e}")
+            logger.error(f"Database error saving UserDocument with id {getattr(instance, 'id', 'unknown')}: {e}")
             # Re-raise or handle as appropriate
             raise Exception(f"Failed to save UserDocument: {e}") from e
         except Exception as e:
-            logger.error(f"Unexpected error saving UserDocument with id {instance.id}: {e}")
+            logger.error(f"Unexpected error saving UserDocument with id {getattr(instance, 'id', 'unknown')}: {e}")
             raise # Re-raise unexpected errors
         finally:
             await db_client.close()
 
-    @staticmethod
+    @classmethod
     async def find_one(cls: Type['UserDocument'], **kwargs) -> typing.Optional['UserDocument']:
         """Finds a single UserDocument instance based on keyword arguments."""
         if not kwargs:
@@ -162,7 +162,7 @@ class UserDocument(BaseModel):
         finally:
             await db_client.close()
 
-    @staticmethod
+    @classmethod
     async def get_or_create(cls: Type['UserDocument'], defaults: typing.Optional[dict] = None, **kwargs) -> 'UserDocument':
         """Finds a user based on kwargs or creates one if not found, using defaults for creation."""
         # Attempt to find the user first using the existing static method
@@ -185,8 +185,7 @@ class UserDocument(BaseModel):
             new_user = cls(**create_data)
 
             # Use the existing static save method. cls is passed implicitly.
-            # Pass instance explicitly
-            saved_user = await cls.save(cls=cls, instance=new_user)
+            saved_user = await cls.save(new_user)
             logger.info(f"Successfully created and saved new UserDocument with data: {create_data}")
             return saved_user
         except (TypeError, ValueError) as e: # Catch Pydantic validation errors (TypeError/ValueError)
@@ -209,7 +208,7 @@ class RepositoryDocument(BaseModel):
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
-    @staticmethod
+    @classmethod
     async def save(cls: Type[T], instance: T) -> T:
         """Saves (inserts or updates) a RepositoryDocument instance to the database."""
         db_client = SupabaseClient()
@@ -229,11 +228,8 @@ class RepositoryDocument(BaseModel):
 
             # Map model fields to DB columns for SQL construction
             columns_model = list(data.keys())
-            # Map to DB column names for the SQL query, ensuring they are strings
             columns_db = [db_column_map.get(col, col) for col in columns_model]
-            # Filter out potential None values and ensure all are strings
-            columns_db_str = [col for col in columns_db if isinstance(col, str)]
-            insert_cols = ", ".join(f'"{c}"' for c in columns_db_str) # Quote column names
+            insert_cols = ", ".join(columns_db)
             insert_placeholders = ", ".join(f"${i+1}" for i in range(len(columns_db)))
 
             # Build UPDATE SET clause excluding conflict target ('url') and 'id', 'created_at', 'updated_at'
@@ -271,19 +267,19 @@ class RepositoryDocument(BaseModel):
                          model_data[model_key] = value
                 return cls(**model_data)
             else:
-                logger.warning(f"Failed to save or retrieve record for RepositoryDocument with link {instance.link}")
+                logger.warning(f"Failed to save or retrieve record for RepositoryDocument with link {getattr(instance, 'link', 'unknown')}")
                 return instance
 
         except asyncpg.PostgresError as e:
-            logger.error(f"Database error saving RepositoryDocument with link {instance.link}: {e}")
+            logger.error(f"Database error saving RepositoryDocument with link {getattr(instance, 'link', 'unknown')}: {e}")
             raise Exception(f"Failed to save RepositoryDocument: {e}") from e
         except Exception as e:
-            logger.error(f"Unexpected error saving RepositoryDocument with link {instance.link}: {e}")
+            logger.error(f"Unexpected error saving RepositoryDocument with link {getattr(instance, 'link', 'unknown')}: {e}")
             raise
         finally:
             await db_client.close()
 
-    @staticmethod
+    @classmethod
     async def find_one(cls: Type['RepositoryDocument'], **kwargs) -> typing.Optional['RepositoryDocument']:
         """Finds a single RepositoryDocument instance based on keyword arguments."""
         if not kwargs:
@@ -357,7 +353,7 @@ class RepositoryDocument(BaseModel):
             return None
         finally:
             await db_client.close()
-    @staticmethod
+    @classmethod
     async def bulk_insert(cls: Type['RepositoryDocument'], instances: typing.List['RepositoryDocument']) -> None:
         """Efficiently inserts multiple RepositoryDocument instances into the database."""
         if not instances:
@@ -437,7 +433,7 @@ class PostDocument(BaseModel):
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
-    @staticmethod
+    @classmethod
     async def save(cls: Type[T], instance: T) -> T:
         """Saves (inserts or updates) a PostDocument instance to the database."""
         db_client = SupabaseClient()
@@ -458,11 +454,8 @@ class PostDocument(BaseModel):
 
             # Map model fields to DB columns for SQL construction
             columns_model = list(data.keys())
-            # Map to DB column names for the SQL query, ensuring they are strings
             columns_db = [db_column_map.get(col, col) for col in columns_model]
-            # Filter out potential None values and ensure all are strings
-            columns_db_str = [col for col in columns_db if isinstance(col, str)]
-            insert_cols = ", ".join(f'"{c}"' for c in columns_db_str) # Quote column names
+            insert_cols = ", ".join(columns_db)
             insert_placeholders = ", ".join(f"${i+1}" for i in range(len(columns_db)))
 
             # Build UPDATE SET clause excluding conflict target ('id') and 'created_at', 'updated_at'
@@ -497,19 +490,19 @@ class PostDocument(BaseModel):
                          model_data[model_key] = value
                 return cls(**model_data)
             else:
-                logger.warning(f"Failed to save or retrieve record for PostDocument with id {instance.id}")
+                logger.warning(f"Failed to save or retrieve record for PostDocument with id {getattr(instance, 'id', 'unknown')}")
                 return instance
 
         except asyncpg.PostgresError as e:
-            logger.error(f"Database error saving PostDocument with id {instance.id}: {e}")
+            logger.error(f"Database error saving PostDocument with id {getattr(instance, 'id', 'unknown')}: {e}")
             raise Exception(f"Failed to save PostDocument: {e}") from e
         except Exception as e:
-            logger.error(f"Unexpected error saving PostDocument with id {instance.id}: {e}")
+            logger.error(f"Unexpected error saving PostDocument with id {getattr(instance, 'id', 'unknown')}: {e}")
             raise
         finally:
             await db_client.close()
 
-    @staticmethod
+    @classmethod
     async def find_one(cls: Type['PostDocument'], **kwargs) -> typing.Optional['PostDocument']:
         """Finds a single PostDocument instance based on keyword arguments."""
         if not kwargs:
@@ -583,7 +576,7 @@ class PostDocument(BaseModel):
             return None
         finally:
             await db_client.close()
-    @staticmethod
+    @classmethod
     async def bulk_insert(cls: Type['PostDocument'], instances: typing.List['PostDocument']) -> None:
         """Efficiently inserts multiple PostDocument instances into the database."""
         if not instances:
@@ -647,7 +640,6 @@ class PostDocument(BaseModel):
             logger.error(f"Unexpected error during bulk insert for PostDocument: {e}")
             raise
         finally:
-            # Rely on close() to handle connection state
             if db_client:
                  await db_client.close()
 
@@ -662,7 +654,7 @@ class ArticleDocument(BaseModel):
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 
-    @staticmethod
+    @classmethod
     async def save(cls: Type[T], instance: T) -> T:
         """Saves (inserts or updates) an ArticleDocument instance to the database."""
         db_client = SupabaseClient()
@@ -682,11 +674,8 @@ class ArticleDocument(BaseModel):
 
             # Map model fields to DB columns for SQL construction
             columns_model = list(data.keys())
-            # Map to DB column names for the SQL query, ensuring they are strings
             columns_db = [db_column_map.get(col, col) for col in columns_model]
-            # Filter out potential None values and ensure all are strings
-            columns_db_str = [col for col in columns_db if isinstance(col, str)]
-            insert_cols = ", ".join(f'"{c}"' for c in columns_db_str) # Quote column names
+            insert_cols = ", ".join(columns_db)
             insert_placeholders = ", ".join(f"${i+1}" for i in range(len(columns_db)))
 
             # Build UPDATE SET clause excluding conflict target ('url') and 'id', 'created_at', 'updated_at'
@@ -721,19 +710,19 @@ class ArticleDocument(BaseModel):
                          model_data[model_key] = value
                 return cls(**model_data)
             else:
-                logger.warning(f"Failed to save or retrieve record for ArticleDocument with link {instance.link}")
+                logger.warning(f"Failed to save or retrieve record for ArticleDocument with link {getattr(instance, 'link', 'unknown')}")
                 return instance
 
         except asyncpg.PostgresError as e:
-            logger.error(f"Database error saving ArticleDocument with link {instance.link}: {e}")
+            logger.error(f"Database error saving ArticleDocument with link {getattr(instance, 'link', 'unknown')}: {e}")
             raise Exception(f"Failed to save ArticleDocument: {e}") from e
         except Exception as e:
-            logger.error(f"Unexpected error saving ArticleDocument with link {instance.link}: {e}")
+            logger.error(f"Unexpected error saving ArticleDocument with link {getattr(instance, 'link', 'unknown')}: {e}")
             raise
         finally:
             await db_client.close()
 
-    @staticmethod
+    @classmethod
     async def find_one(cls: Type['ArticleDocument'], **kwargs) -> typing.Optional['ArticleDocument']:
         """Finds a single ArticleDocument instance based on keyword arguments."""
         if not kwargs:
@@ -807,7 +796,7 @@ class ArticleDocument(BaseModel):
             return None
         finally:
             await db_client.close()
-    @staticmethod
+    @classmethod
     async def bulk_insert(cls: Type['ArticleDocument'], instances: typing.List['ArticleDocument']) -> None:
         """Efficiently inserts multiple ArticleDocument instances into the database."""
         if not instances:
@@ -870,7 +859,6 @@ class ArticleDocument(BaseModel):
             logger.error(f"Unexpected error during bulk insert for ArticleDocument: {e}")
             raise
         finally:
-            # Rely on close() to handle connection state
             if db_client:
                  await db_client.close()
 

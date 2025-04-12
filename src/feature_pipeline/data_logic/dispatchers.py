@@ -66,7 +66,7 @@ class CleaningDispatcher:
         logger.info(
             "Data cleaned successfully.",
             data_type=data_type,
-            cleaned_content_len=len(clean_model.cleaned_content),
+            cleaned_content_len=len(clean_model.cleaned_content),  # type: ignore[attr-defined]
         )
 
         return clean_model
@@ -128,7 +128,7 @@ class EmbeddingDispatcher:
         logger.info(
             "Chunk embedded successfully.",
             data_type=data_type,
-            embedding_len=len(embedded_chunk_model.embedded_content),
+            embedding_len=len(embedded_chunk_model.embedded_content),  # type: ignore[attr-defined]
         )
 
         return embedded_chunk_model

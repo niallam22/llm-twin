@@ -5,20 +5,20 @@ from typing import List
 
 from pydantic import BaseModel
 
-from core.db.documents import BaseDocument
+from pydantic import BaseModel # Changed from BaseDocument
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
 
 class BaseCrawler(ABC):
-    model: type[BaseDocument]
+    model: type[BaseModel] # Changed from BaseDocument
 
     @abstractmethod
     def extract(self, link: str, **kwargs) -> None: ...
 
     async def save_documents(self, documents: List[BaseModel]) -> None:
         """Saves a list of documents using the model's async bulk_insert."""
-        await self.model.bulk_insert(documents)
+        await self.model.bulk_insert(documents) # type: ignore[attr-defined] # Specific models have bulk_insert
 
 
 class BaseAbstractCrawler(BaseCrawler, ABC):

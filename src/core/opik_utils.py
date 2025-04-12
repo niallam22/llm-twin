@@ -6,8 +6,8 @@ from pathlib import Path
 
 from tqdm import tqdm
 
-from core.config import settings
-from core.logger_utils import get_logger
+from config import settings
+from logger_utils import get_logger 
 
 logger = get_logger(__name__)
 

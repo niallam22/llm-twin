@@ -1,5 +1,4 @@
 import time
-import asyncio
 from typing import Dict, List, Optional
 
 from aws_lambda_powertools import Logger

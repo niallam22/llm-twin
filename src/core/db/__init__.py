@@ -1,3 +1,3 @@
-from . import documents, mongo, qdrant
+from . import documents, qdrant
 
-__all__ = ["documents", "mongo", "qdrant"]
+__all__ = ["documents", "qdrant"]
