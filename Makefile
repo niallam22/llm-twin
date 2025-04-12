@@ -25,22 +25,30 @@ local-stop: # Stop your local Docker infrastructure.
 # ---------- Crawling Data -------------
 # ======================================
 
-local-test-medium: # Make a call to your local AWS Lambda (hosted in Docker) to crawl a Medium article.
-	curl -X POST "http://localhost:9010/2015-03-31/functions/function/invocations" \
-	  	-d '{"user": "Paul Iusztin", "link": "https://medium.com/decodingml/an-end-to-end-framework-for-production-ready-llm-systems-by-building-your-llm-twin-2cc6bb01141f"}'
+local-test-medium: # Make a call to the local API to crawl a Medium article.
+	curl -X POST "http://localhost:8000/crawl/link" \
+		-H "Content-Type: application/json" \
+	  	-d '{"link": "https://medium.com/decodingml/an-end-to-end-framework-for-production-ready-llm-systems-by-building-your-llm-twin-2cc6bb01141f", "user_info": {"username": "test_user"}}'
 
-local-test-github: # Make a call to your local AWS Lambda (hosted in Docker) to crawl a Github repository.
-	curl -X POST "http://localhost:9010/2015-03-31/functions/function/invocations" \
-	  	-d '{"user": "Paul Iusztin", "link": "https://github.com/decodingml/llm-twin-course"}'
+local-test-github: # Make a call to the local API to crawl a Github repository.
+	curl -X POST "http://localhost:8000/crawl/link" \
+		-H "Content-Type: application/json" \
+	  	-d '{"link": "https://github.com/decodingml/llm-twin-course", "user_info": {"username": "test_user"}}'
 
-local-ingest-data: # Ingest all links from data/links.txt by calling your local AWS Lambda hosted in Docker.
+local-ingest-data: # Ingest all links from data/links.txt by calling the local API /crawl/link endpoint.
 	while IFS= read -r link; do \
 		echo "Processing: $$link"; \
-		curl -X POST "http://localhost:9010/2015-03-31/functions/function/invocations" \
-			-d "{\"user\": \"Paul Iusztin\", \"link\": \"$$link\"}"; \
+		curl -X POST "http://localhost:8000/crawl/link" \
+			-H "Content-Type: application/json" \
+			-d "{\"link\": \"$$link\", \"user_info\": {\"username\": \"ingest_user\"}}"; \
 		echo "\n"; \
 		sleep 2; \
 	done < data/links.txt
+
+local-test-raw-text: # Make a call to the local API to submit raw text.
+	curl -X POST "http://localhost:8000/crawl/raw_text" \
+		-H "Content-Type: application/json" \
+		-d '{"text": "This is some raw text content provided via Makefile.", "user_info": {"username": "raw_text_user"}, "metadata": {"source_platform": "manual_input_makefile"}}'
 
 # ======================================
 # -------- RAG Feature Pipeline --------

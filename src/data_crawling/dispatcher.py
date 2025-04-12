@@ -6,6 +6,9 @@ from crawlers.custom_article import CustomArticleCrawler
 
 logger = Logger(service="llm-twin-course/crawler")
 
+class NoCrawlerFoundError(Exception):
+    """Custom exception raised when no suitable crawler is found for a URL."""
+    pass
 
 class CrawlerDispatcher:
     def __init__(self) -> None:
@@ -18,9 +21,6 @@ class CrawlerDispatcher:
         for pattern, crawler in self._crawlers.items():
             if re.match(pattern, url):
                 return crawler()
-        else:
-            logger.warning(
-                f"No crawler found for {url}. Defaulting to CustomArticleCrawler."
-            )
-
-            return CustomArticleCrawler()
+        # If no pattern matches after checking all registered crawlers
+        logger.error(f"No crawler found for URL: {url}")
+        raise NoCrawlerFoundError(f"No crawler registered for URL pattern matching: {url}")

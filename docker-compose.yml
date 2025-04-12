@@ -54,20 +54,21 @@ services:
       - postgres
       - mq
 
-  data-crawlers:
-    image: "llm-twin-data-crawlers"
-    container_name: llm-twin-data-crawlers
-    platform: "linux/amd64"
+  api: # Added API service definition
+    container_name: llm-twin-api
     build:
       context: .
-      dockerfile: .docker/Dockerfile.data_crawlers
-    env_file:
-      - .env
+      dockerfile: .docker/Dockerfile.api # Task 4.8.1 (Note: File currently missing)
     ports:
-      - "9010:8080"
-    depends_on:
+      - "8000:80" # Task 4.8.3
+    env_file:
+      - .env # Task 4.8.4
+    depends_on: # Task 4.8.4
+      - mq
       - postgres
+    restart: always
 
+  # Removed data-crawlers service (Task 4.8.2)
   feature_pipeline:
     image: "llm-twin-feature-pipeline"
     container_name: llm-twin-feature-pipeline

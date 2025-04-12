@@ -1,0 +1,28 @@
+# Task 4.7.1: Use a suitable Python base image
+FROM python:3.11-slim
+
+# Task 4.7.1: Set the working directory
+WORKDIR /app
+
+# Task 4.7.1: Install poetry
+RUN pip install poetry
+
+# Task 4.7.1: Copy pyproject.toml and poetry.lock files
+COPY pyproject.toml poetry.lock* /app/
+
+# Task 4.7.1 & 4.7.2: Install dependencies using poetry
+RUN poetry config virtualenvs.create false && poetry install --no-root --only main --no-interaction --no-ansi
+
+# Task 4.7.1: Copy the necessary source code directories
+COPY src/api /app/src/api
+COPY src/core /app/src/core
+COPY src/data_crawling /app/src/data_crawling
+COPY src/feature_pipeline /app/src/feature_pipeline
+COPY src/inference_pipeline /app/src/inference_pipeline
+COPY src/bonus_superlinked_rag /app/src/bonus_superlinked_rag
+
+# Task 4.7.1: Set the PYTHONPATH environment variable
+ENV PYTHONPATH=/app
+
+# Task 4.7.3: Set CMD to run the FastAPI application
+CMD ["uvicorn", "src.api.main:app", "--host", "0.0.0.0", "--port", "80"]

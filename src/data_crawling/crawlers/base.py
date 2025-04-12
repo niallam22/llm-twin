@@ -1,7 +1,9 @@
 import time
+import uuid
 from abc import ABC, abstractmethod
 from tempfile import mkdtemp
 from typing import List
+from uuid import UUID
 
 from pydantic import BaseModel
 
@@ -12,9 +14,17 @@ from selenium.webdriver.chrome.options import Options
 
 class BaseCrawler(ABC):
     model: type[BaseModel] # Changed from BaseDocument
+    author_id: UUID | None = None # To store author_id passed during extraction
 
     @abstractmethod
-    def extract(self, link: str, **kwargs) -> None: ...
+    async def extract(self, link: str, author_id: UUID | None = None, **kwargs) -> None:
+        """
+        Extracts content from the given link.
+        Specific implementations should create document instances using self.model
+        and include self.author_id if it's provided.
+        """
+        self.author_id = author_id # Store author_id for potential use in subclasses/save_documents
+        ...
 
     async def save_documents(self, documents: List[BaseModel]) -> None:
         """Saves a list of documents using the model's async bulk_insert."""

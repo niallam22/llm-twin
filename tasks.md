@@ -92,7 +92,7 @@ AC: Functions exist to execute SELECT queries and retrieve data from the Supabas
 
 AC: Pydantic models in documents.py are decoupled from MongoDB-specific ORM/ODM features.
 
-[ ] Task 2.2.2 (Option B): Create a new base class or helper functions within documents.py or supabase_client.py responsible for database interactions.
+[x] Task 2.2.2 (Option B): Create a new base class or helper functions within documents.py or supabase_client.py responsible for database interactions. (Implemented as classmethods on models)
 
 AC: A dedicated structure exists for handling Supabase interactions related to the Pydantic document models.
 
@@ -111,14 +111,6 @@ AC: Calling UserDocument.get_or_create(platform_user_id="...") correctly finds a
 [x] Task 2.2.6 (Option B): Implement an async bulk_insert(instances) method/function. It should take a list of Pydantic model instances, construct an efficient SQL INSERT statement for multiple rows (using VALUES (...), (...) or COPY if applicable via the driver), and execute it using supabase_client.py.
 
 AC: Calling ArticleDocument.bulk_insert([article1, article2]) efficiently inserts multiple article records into the Supabase articles table in a single operation.
-
-[ ] Task 2.2.7 (Option A - ORM): Alternative to 2.2.1-2.2.6. Define SQLAlchemy models in src/core/db/sql_models.py corresponding to the Postgres tables (User, Article, Post, Repository).
-
-AC: SQLAlchemy model classes mapping to the database tables exist.
-
-[ ] Task 2.2.8 (Option A): Refactor src/core/db/documents.py to use the SQLAlchemy models. Adapt Pydantic models if needed or use them primarily for API boundaries. Update save, find_one, get_or_create, bulk_insert methods to use SQLAlchemy async session operations (session.add, session.execute(select(...)), session.merge, session.add_all, session.commit).
-
-AC: Methods in documents.py correctly interact with the database via the SQLAlchemy ORM async session. UserDocument.get_or_create uses the ORM's capabilities.
 
 [x] Task 2.3.1: Update the save_documents method in src/data_crawling/crawlers/base.py. Replace the self.model.bulk_insert(documents) call with the equivalent refactored bulk insert method from documents.py (ensure it's called with await).
 
@@ -295,137 +287,139 @@ Overall PASS status only if notifications were correctly received for ALL test i
 
 The script should exit with code 0 if all tests pass and non-zero if any test fails, with detailed error information in STDERR.
 
-Story 4: Refactor Data Crawlers to FastAPI Endpoints
+### Story 4A: Refactor Data Crawlers to FastAPI Endpoints - Schema Models and Link Crawler Endpoint
 
-[ ] Task 4.1.1: Create a new file src/api/schemas/crawler.py.
+[x] Task 4.1.1: Create a new file src/api/schemas/crawler.py.
 
 AC: The file src/api/schemas/crawler.py exists.
 
-[ ] Task 4.1.2: Define a Pydantic model LinkCrawlRequest in crawler.py with fields like link (HttpUrl) and user_info (e.g., a nested model with platform_user_id or username).
+[x] Task 4.1.2: Define a Pydantic model LinkCrawlRequest in crawler.py with fields like link (HttpUrl) and user_info (e.g., a nested model with platform_user_id or username).
 
 AC: The LinkCrawlRequest Pydantic model is defined for API input validation.
 
-[ ] Task 4.1.3: Define a Pydantic model RawTextCrawlRequest in crawler.py with fields like text (str), user_info (same as above), and optional metadata (dict or nested model, e.g., source_platform, original_url).
+[x] Task 4.1.3: Define a Pydantic model RawTextCrawlRequest in crawler.py with fields like text (str), user_info (same as above), and optional metadata (dict or nested model, e.g., source_platform, original_url).
 
 AC: The RawTextCrawlRequest Pydantic model is defined for API input validation.
 
-[ ] Task 4.1.4: Define Pydantic models for API responses, e.g., CrawlSuccessResponse (e.g., {"status": "submitted", "document_id": "..."}) and potentially standard error responses.
+[x] Task 4.1.4: Define Pydantic models for API responses, e.g., CrawlSuccessResponse (e.g., {"status": "submitted", "document_id": "..."}) and potentially standard error responses.
 
 AC: Pydantic models for API responses are defined for serialization.
 
-[ ] Task 4.2.1: Create a new file src/api/routers/crawling.py.
+[x] Task 4.2.1: Create a new file src/api/routers/crawling.py.
 
 AC: The file src/api/routers/crawling.py exists.
 
-[ ] Task 4.2.2: Initialize a FastAPI APIRouter instance in crawling.py.
+[x] Task 4.2.2: Initialize a FastAPI APIRouter instance in crawling.py.
 
 AC: An APIRouter is created in crawling.py.
 
-[ ] Task 4.2.3: Include the crawling router in the main FastAPI app in src/api/main.py using app.include_router.
+[x] Task 4.2.3: Include the crawling router in the main FastAPI app in src/api/main.py using app.include_router.
 
 AC: Endpoints defined in crawling.py will be accessible via the main application.
 
-[ ] Task 4.3.1: Implement a new async function for the POST /crawl/link endpoint in crawling.py. Annotate it with @router.post("/link", response_model=...). It should accept the LinkCrawlRequest model as the request body.
+[x] Task 4.3.1: Implement a new async function for the POST /crawl/link endpoint in crawling.py. Annotate it with @router.post("/link", response_model=...). It should accept the LinkCrawlRequest model as the request body.
 
 AC: A FastAPI POST endpoint exists at /crawl/link.
 
-[ ] Task 4.3.2: Inside the /crawl/link endpoint function, extract user information from the request body. Call the refactored UserDocument.get_or_create (with await) using the user info to get the user ID.
+[x] Task 4.3.2: Inside the /crawl/link endpoint function, extract user information from the request body. Call the refactored UserDocument.get_or_create (with await) using the user info to get the user ID.
 
 AC: The endpoint correctly retrieves or creates a user record in Supabase based on the request payload.
 
-[ ] Task 4.3.3: Instantiate the CrawlerDispatcher from src/data_crawling/dispatcher.py within the endpoint function (or use dependency injection later).
+[x] Task 4.3.3: Instantiate the CrawlerDispatcher from src/data_crawling/dispatcher.py within the endpoint function (or use dependency injection later).
 
 AC: The CrawlerDispatcher is available within the endpoint.
 
-[ ] Task 4.3.4: Call dispatcher.get_crawler(link) to determine the appropriate crawler instance based on the input link. Handle cases where no crawler is found (return HTTP 400).
+[x] Task 4.3.4: Call dispatcher.get_crawler(link) to determine the appropriate crawler instance based on the input link. Handle cases where no crawler is found (return HTTP 400).
 
 AC: The endpoint correctly identifies the crawler for a given link.
 
-[ ] Task 4.3.5: Call the selected crawler's extract(link=link, user=user_id) method (with await as crawler methods interacting with DB should be async). Handle potential exceptions during crawling/extraction (return HTTP 500).
+[x] Task 4.3.5: Call the selected crawler's extract(link=link, user=user_id) method (with await as crawler methods interacting with DB should be async). Handle potential exceptions during crawling/extraction (return HTTP 500).
 
 AC: The endpoint successfully invokes the extract method of the appropriate crawler.
 
-[ ] Task 4.3.6: Return an appropriate success response (e.g., CrawlSuccessResponse or a simple HTTP 202 Accepted) upon successful scheduling/completion of the crawl extraction.
+[x] Task 4.3.6: Return an appropriate success response (e.g., CrawlSuccessResponse or a simple HTTP 202 Accepted) upon successful scheduling/completion of the crawl extraction.
 
 AC: The /crawl/link endpoint returns a successful HTTP response upon completion.
 
-[ ] Task 4.4.1: Implement a new async function for the POST /crawl/raw_text endpoint in crawling.py. Annotate it with @router.post("/raw_text", response_model=...). It should accept the RawTextCrawlRequest model as the request body.
+### Story 4B: Refactor Data Crawlers to FastAPI Endpoints - Raw Text Endpoint and Infrastructure
+
+[x] Task 4.4.1: Implement a new async function for the POST /crawl/raw_text endpoint in crawling.py. Annotate it with @router.post("/raw_text", response_model=...). It should accept the RawTextCrawlRequest model as the request body.
 
 AC: A FastAPI POST endpoint exists at /crawl/raw_text.
 
-[ ] Task 4.4.2: Inside the /crawl/raw_text endpoint function, extract user information and call UserDocument.get_or_create (with await) to get the user ID.
+[x] Task 4.4.2: Inside the /crawl/raw_text endpoint function, extract user information and call UserDocument.get_or_create (with await) to get the user ID.
 
 AC: The endpoint correctly retrieves or creates a user record in Supabase based on the request payload.
 
-[ ] Task 4.4.3: Process the incoming text and metadata. Decide on the target table (e.g., articles with platform='raw' or posts).
+[x] Task 4.4.3: Process the incoming text and metadata. Decide on the target table (e.g., articles with platform='raw' or posts).
 
 AC: The logic determines how to store the raw text within the existing database schema.
 
-[ ] Task 4.4.4: Instantiate the appropriate Pydantic document model (e.g., ArticleDocument) with the processed text, metadata, and author_id.
+[x] Task 4.4.4: Instantiate the appropriate Pydantic document model (e.g., ArticleDocument) with the processed text, metadata, and author_id.
 
 AC: A Pydantic model instance is created representing the raw text input.
 
-[ ] Task 4.4.5: Call the refactored save method (with await) from documents.py to persist the document instance to the Supabase database. Handle potential errors (return HTTP 500).
+[x] Task 4.4.5: Call the refactored save method (with await) from documents.py to persist the document instance to the Supabase database. Handle potential errors (return HTTP 500).
 
 AC: The raw text data is successfully saved to the designated Supabase table.
 
-[ ] Task 4.4.6: Return an appropriate success response (e.g., including the ID of the newly created record) from the /crawl/raw_text endpoint.
+[x] Task 4.4.6: Return an appropriate success response (e.g., including the ID of the newly created record) from the /crawl/raw_text endpoint.
 
 AC: The /crawl/raw_text endpoint returns a successful HTTP response, and the data persistence triggers the CDC LISTEN/NOTIFY flow.
 
-[ ] Task 4.5.1: (Refinement) Refactor crawler/dispatcher instantiation in the API endpoints. Consider creating instances once (e.g., using FastAPI's lifespan events or a simple cache) or using FastAPI's Depends for dependency injection if state management becomes complex.
+[x] Task 4.5.1: (Refinement) Refactor crawler/dispatcher instantiation in the API endpoints. Consider creating instances once (e.g., using FastAPI's lifespan events or a simple cache) or using FastAPI's Depends for dependency injection if state management becomes complex.
 
 AC: Crawler/dispatcher instantiation is optimized for the API context.
 
-[ ] Task 4.6.1: Delete the AWS Lambda handler specific code (e.g., wrapper functions) within src/data_crawling/main.py or other files.
+[x] Task 4.6.1: Delete the AWS Lambda handler specific code (e.g., wrapper functions) within src/data_crawling/main.py or other files.
 
 AC: Lambda-specific handler code is removed from the Python source.
 
-[ ] Task 4.6.2: Delete the Dockerfile specifically for the data crawlers Lambda function (.docker/Dockerfile.data_crawlers).
+[x] Task 4.6.2: Delete the Dockerfile specifically for the data crawlers Lambda function (.docker/Dockerfile.data_crawlers).
 
 AC: The file .docker/Dockerfile.data_crawlers no longer exists.
 
-[ ] Task 4.7.1: Create or update the primary API Dockerfile (e.g., .docker/Dockerfile.api). Ensure it copies all necessary source code (src/api, src/core, src/data_crawling).
+[x] Task 4.7.1: Create or update the primary API Dockerfile (e.g., .docker/Dockerfile.api). Ensure it copies all necessary source code (src/api, src/core, src/data_crawling).
 
 AC: The API Dockerfile correctly includes crawler source code.
 
-[ ] Task 4.7.2: Ensure the API Dockerfile installs all dependencies, including those required by the crawlers (e.g., requests, beautifulsoup4, specific SDKs).
+[x] Task 4.7.2: Ensure the API Dockerfile installs all dependencies, including those required by the crawlers (e.g., requests, beautifulsoup4, specific SDKs).
 
 AC: The API Dockerfile installs dependencies needed for both API serving and crawling logic.
 
-[ ] Task 4.7.3: Set the CMD or ENTRYPOINT in the API Dockerfile to run the FastAPI application using uvicorn (e.g., uvicorn src.api.main:app --host 0.0.0.0 --port 80).
+[x] Task 4.7.3: Set the CMD or ENTRYPOINT in the API Dockerfile to run the FastAPI application using uvicorn (e.g., uvicorn src.api.main:app --host 0.0.0.0 --port 80).
 
 AC: The API Dockerfile correctly specifies the command to start the FastAPI server.
 
-[ ] Task 4.8.1: Add/Update the api service definition in docker-compose.yml. Configure it to build using the .docker/Dockerfile.api context.
+[x] Task 4.8.1: Add/Update the api service definition in docker-compose.yml. Configure it to build using the .docker/Dockerfile.api context.
 
 AC: An api service is defined in docker-compose.yml using the correct Dockerfile.
 
-[ ] Task 4.8.2: Remove the old data-crawlers service definition (or similar name for the Lambda service) from docker-compose.yml.
+[x] Task 4.8.2: Remove the old data-crawlers service definition (or similar name for the Lambda service) from docker-compose.yml.
 
 AC: The service definition for the old crawler Lambda is removed from docker-compose.yml.
 
-[ ] Task 4.8.3: Map the appropriate port for the api service in docker-compose.yml (e.g., 8000:80).
+[x] Task 4.8.3: Map the appropriate port for the api service in docker-compose.yml (e.g., 8000:80).
 
 AC: The API service port is correctly mapped in docker-compose.yml.
 
-[ ] Task 4.8.4: Ensure the api service in docker-compose.yml has necessary environment variables (e.g., SUPABASE_DB_URL) and potentially depends_on postgres (if local).
+[x] Task 4.8.4: Ensure the api service in docker-compose.yml has necessary environment variables (e.g., SUPABASE_DB_URL) and potentially depends_on postgres (if local).
 
 AC: The API service is configured with required environment variables and dependencies.
 
-[ ] Task 4.9.1: Update the Makefile command local-test-medium (and similar for other platforms) to use curl or a similar tool to send a POST request to http://localhost:8000/crawl/link with the appropriate JSON payload.
+[x] Task 4.9.1: Update the Makefile command local-test-medium (and similar for other platforms) to use curl or a similar tool to send a POST request to http://localhost:8000/crawl/link with the appropriate JSON payload.
 
 AC: The make local-test-medium command successfully calls the new FastAPI endpoint for link crawling.
 
-[ ] Task 4.9.2: Update the Makefile command local-ingest-data (if applicable) to use the new API endpoints.
+[x] Task 4.9.2: Update the Makefile command local-ingest-data (if applicable) to use the new API endpoints.
 
 AC: The make local-ingest-data command works with the refactored API.
 
-[ ] Task 4.9.3: Add a new Makefile command local-test-raw-text that uses curl to send a POST request to http://localhost:8000/crawl/raw_text with a sample JSON payload containing text and user info.
+[x] Task 4.9.3: Add a new Makefile command local-test-raw-text that uses curl to send a POST request to http://localhost:8000/crawl/raw_text with a sample JSON payload containing text and user info.
 
 AC: A make local-test-raw-text command exists and successfully calls the new FastAPI endpoint for raw text ingestion.
 
-Story 5: Adapt Feature Pipeline (Bytewax)
+### Story 5: Adapt Feature Pipeline (Bytewax)
 
 [ ] Task 5.1.1: Review the RabbitMQSource configuration in src/feature_pipeline/main.py. Confirm it reads from the same queue name that the cdc-listener is publishing to (check configuration in core/config.py).
 
@@ -455,9 +449,7 @@ AC: The Bytewax pipeline successfully connects to the configured Qdrant instance
 
 AC: The Bytewax pipeline runs successfully, processing messages originating from the Postgres CDC and storing results in Qdrant.
 
-Release 3: Inference Pipeline Refactoring & UI Integration
-
-Story 6: Refactor Inference Pipeline to FastAPI Endpoint
+### Story 6A: Refactor Inference Pipeline to FastAPI Endpoint - Schema and API Implementation
 
 [ ] Task 6.1.1: Create a new file src/api/schemas/inference.py.
 
@@ -502,6 +494,8 @@ AC: Requests to the /generate endpoint are correctly tracked in Opik with releva
 [ ] Task 6.3.5: Format the result from the generation method into the InferenceResponse Pydantic model and return it. Handle potential errors during generation (return HTTP 500).
 
 AC: The /generate endpoint returns the generated answer and context (if applicable) in the specified response format.
+
+### Story 6B: Refactor Inference Pipeline to FastAPI Endpoint - Model Loading and Infrastructure
 
 [ ] Task 6.4.1 (Model Loading - Option A: Startup Event): Define startup and potentially shutdown event handlers in src/api/main.py. In the startup handler, load the fine-tuned LLM model (using transformers, unsloth, etc.) and the RAG retriever (Qdrant client) and store them globally or attached to the app state (e.g., app.state.llm, app.state.retriever).
 
@@ -557,6 +551,8 @@ Option 3 (Mount volume): Assume model weights are pre-downloaded and mounted int
 
 AC: A strategy for handling model weights within the Docker container is chosen and implemented in the Dockerfile or runtime logic.
 
+### Story 6C: Refactor Inference Pipeline to FastAPI Endpoint - UI Integration
+
 [ ] Task 6.8.1: Remove the deploy-inference-pipeline command from the Makefile.
 
 AC: The deploy-inference-pipeline Make target is removed.
@@ -577,9 +573,7 @@ AC: Running make local-start-ui launches the Gradio UI, and interacting with it 
 
 AC: Evaluation scripts are updated to work with the refactored local/FastAPI inference setup.
 
-Release 4: Finalization, Testing & Documentation
-
-Story 7: Final Cleanup, Testing & Documentation
+### Story 7A: Final Cleanup, Testing & Configuration
 
 [ ] Task 7.1.1: Review .env.example and ensure it reflects all necessary environment variables for the new stack (Supabase URL, RabbitMQ URI, Qdrant Host/Port, HF Model ID, etc.) and remove all obsolete variables (Mongo URI, SageMaker Endpoint).
 
@@ -660,6 +654,8 @@ Call make call-inference-pipeline with a relevant query and use_rag=True.
 Verify the response includes content derived from the newly ingested raw text.
 
 AC: End-to-end data flow from raw text ingestion through RAG-based inference is successful.
+
+### Story 7B: Documentation Updates
 
 [ ] Task 7.6.1: Update the Architecture Overview section in README.md to describe the new components (Supabase, FastAPI, Postgres CDC Listener). Remove mentions of MongoDB, Lambda, SageMaker endpoint.
 
