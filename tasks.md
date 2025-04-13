@@ -501,7 +501,7 @@ AC: The /generate endpoint returns the generated answer and context (if applicab
 
 AC: The LLM model and retriever are loaded once when the FastAPI application starts.
 
-[ ] Task 6.4.2 (Model Loading - Option B: Singleton/DI): Implement a singleton pattern or use a class-based dependency for the LLMTwin logic or its components (model, retriever) that ensures they are loaded only once when first requested by an endpoint.
+[x] Task 6.4.2 (Model Loading - Option B: Singleton/DI): Implement a singleton pattern or use a class-based dependency for the LLMTwin logic or its components (model, retriever) that ensures they are loaded only once when first requested by an endpoint. (Superseded by 6.4.1)
 
 AC: The LLM model and retriever are loaded efficiently, avoiding reloading on every request.
 
