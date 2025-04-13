@@ -421,27 +421,27 @@ AC: A make local-test-raw-text command exists and successfully calls the new Fas
 
 ### Story 5: Adapt Feature Pipeline (Bytewax)
 
-[ ] Task 5.1.1: Review the RabbitMQSource configuration in src/feature_pipeline/main.py. Confirm it reads from the same queue name that the cdc-listener is publishing to (check configuration in core/config.py).
+[x] Task 5.1.1: Review the RabbitMQSource configuration in src/feature_pipeline/main.py. Confirm it reads from the same queue name that the cdc-listener is publishing to (check configuration in core/config.py).
 
 AC: The Bytewax RabbitMQSource is configured to consume from the correct queue populated by the cdc-listener.
 
-[ ] Task 5.2.1: Inspect the JSON payload structure defined in the Postgres CDC function (notify_data_change()) created in Task 3.1.1.
+[x] Task 5.2.1: Inspect the JSON payload structure defined in the Postgres CDC function (notify_data_change()) created in Task 3.1.1.
 
 AC: The exact structure of the JSON payload sent via pg_notify is known.
 
-[ ] Task 5.2.2: Review the Pydantic models defined in src/feature_pipeline/models/raw.py (e.g., RawRecord) that are used to parse the incoming RabbitMQ messages.
+[x] Task 5.2.2: Review the Pydantic models defined in src/feature_pipeline/models/raw.py (e.g., RawRecord) that are used to parse the incoming RabbitMQ messages.
 
 AC: The Pydantic models used by Bytewax for message parsing are identified.
 
-[ ] Task 5.2.3: Compare the JSON payload structure (from 5.2.1) with the Pydantic model structure (from 5.2.2). Adjust either the notify_data_change() function's payload construction or the Pydantic models in raw.py to ensure they match perfectly. Ensure all fields needed by Bytewax (content, metadata, etc.) are present.
+[x] Task 5.2.3: Compare the JSON payload structure (from 5.2.1) with the Pydantic model structure (from 5.2.2). Adjust either the notify_data_change() function's payload construction or the Pydantic models in raw.py to ensure they match perfectly. Ensure all fields needed by Bytewax (content, metadata, etc.) are present.
 
 AC: The JSON structure published by the listener matches the Pydantic model expected by the Bytewax pipeline, allowing successful parsing.
 
-[ ] Task 5.3.1: Verify that the Qdrant connection details (QDRANT_HOST, QDRANT_PORT, QDRANT_API_KEY if applicable) in .env are correct and loaded properly by src/core/config.py.
+[x] Task 5.3.1: Verify that the Qdrant connection details (QDRANT_HOST, QDRANT_PORT, QDRANT_API_KEY if applicable) in .env are correct and loaded properly by src/core/config.py.
 
 AC: Qdrant connection settings are correctly configured.
 
-[ ] Task 5.3.2: Confirm that the Bytewax pipeline's Qdrant client (src/feature_pipeline/steps/output.py or similar) uses these configuration settings to connect.
+[x] Task 5.3.2: Confirm that the Bytewax pipeline's Qdrant client (src/feature_pipeline/steps/output.py or similar) uses these configuration settings to connect.
 
 AC: The Bytewax pipeline successfully connects to the configured Qdrant instance.
 
@@ -451,53 +451,53 @@ AC: The Bytewax pipeline runs successfully, processing messages originating from
 
 ### Story 6A: Refactor Inference Pipeline to FastAPI Endpoint - Schema and API Implementation
 
-[ ] Task 6.1.1: Create a new file src/api/schemas/inference.py.
+[x] Task 6.1.1: Create a new file src/api/schemas/inference.py.
 
 AC: The file src/api/schemas/inference.py exists.
 
-[ ] Task 6.1.2: Define a Pydantic model InferenceRequest in inference.py with fields like query (str) and optional fields like use_rag (bool, default True), user_id (str, optional).
+[x] Task 6.1.2: Define a Pydantic model InferenceRequest in inference.py with fields like query (str) and optional fields like use_rag (bool, default True), user_id (str, optional).
 
 AC: The InferenceRequest Pydantic model is defined for API input validation.
 
-[ ] Task 6.1.3: Define a Pydantic model InferenceResponse in inference.py with fields like answer (str) and optionally context (list[str] or similar, if RAG was used).
+[x] Task 6.1.3: Define a Pydantic model InferenceResponse in inference.py with fields like answer (str) and optionally context (list[str] or similar, if RAG was used).
 
 AC: The InferenceResponse Pydantic model is defined for API response serialization.
 
-[ ] Task 6.2.1: Create a new file src/api/routers/inference.py.
+[x] Task 6.2.1: Create a new file src/api/routers/inference.py.
 
 AC: The file src/api/routers/inference.py exists.
 
-[ ] Task 6.2.2: Initialize a FastAPI APIRouter instance in inference.py.
+[x] Task 6.2.2: Initialize a FastAPI APIRouter instance in inference.py.
 
 AC: An APIRouter is created in inference.py.
 
-[ ] Task 6.2.3: Include the inference router in the main FastAPI app in src/api/main.py using app.include_router.
+[x] Task 6.2.3: Include the inference router in the main FastAPI app in src/api/main.py using app.include_router.
 
 AC: Endpoints defined in inference.py will be accessible via the main application.
 
-[ ] Task 6.3.1: Implement a new async function for the POST /generate endpoint in inference.py. Annotate it with @router.post("/generate", response_model=InferenceResponse). It should accept the InferenceRequest model as the request body.
+[x] Task 6.3.1: Implement a new async function for the POST /generate endpoint in inference.py. Annotate it with @router.post("/generate", response_model=InferenceResponse). It should accept the InferenceRequest model as the request body.
 
 AC: A FastAPI POST endpoint exists at /generate.
 
-[ ] Task 6.3.2: Inside the /generate endpoint, instantiate the core logic class (e.g., LLMTwin from src/inference_pipeline/llm_twin.py) or necessary components (model, retriever). (Consider managing this instance via startup events or dependency injection - see Task 6.4).
+[x] Task 6.3.2: Inside the /generate endpoint, instantiate the core logic class (e.g., LLMTwin from src/inference_pipeline/llm_twin.py) or necessary components (model, retriever). (Consider managing this instance via startup events or dependency injection - see Task 6.4).
 
 AC: The core inference logic components are accessible within the endpoint.
 
-[ ] Task 6.3.3: Call the main generation method (e.g., llm_twin_instance.generate(query=request.query, use_rag=request.use_rag)). Ensure this method now performs local inference instead of calling SageMaker. Await the result.
+[x] Task 6.3.3: Call the main generation method (e.g., llm_twin_instance.generate(query=request.query, use_rag=request.use_rag)). Ensure this method now performs local inference instead of calling SageMaker. Await the result.
 
 AC: The endpoint invokes the core generation logic using the request parameters.
 
-[ ] Task 6.3.4: Adapt the Opik tracking. If @opik.track was used on the original generate method, ensure it still works. If tracking was manual, ensure the necessary Opik context managers or function calls are made within the endpoint function, capturing the request (query) and response (answer, context).
+[x] Task 6.3.4: Adapt the Opik tracking. If @opik.track was used on the original generate method, ensure it still works. If tracking was manual, ensure the necessary Opik context managers or function calls are made within the endpoint function, capturing the request (query) and response (answer, context).
 
 AC: Requests to the /generate endpoint are correctly tracked in Opik with relevant inputs and outputs.
 
-[ ] Task 6.3.5: Format the result from the generation method into the InferenceResponse Pydantic model and return it. Handle potential errors during generation (return HTTP 500).
+[x] Task 6.3.5: Format the result from the generation method into the InferenceResponse Pydantic model and return it. Handle potential errors during generation (return HTTP 500).
 
 AC: The /generate endpoint returns the generated answer and context (if applicable) in the specified response format.
 
 ### Story 6B: Refactor Inference Pipeline to FastAPI Endpoint - Model Loading and Infrastructure
 
-[ ] Task 6.4.1 (Model Loading - Option A: Startup Event): Define startup and potentially shutdown event handlers in src/api/main.py. In the startup handler, load the fine-tuned LLM model (using transformers, unsloth, etc.) and the RAG retriever (Qdrant client) and store them globally or attached to the app state (e.g., app.state.llm, app.state.retriever).
+[x] Task 6.4.1 (Model Loading - Option A: Startup Event): Define startup and potentially shutdown event handlers in src/api/main.py. In the startup handler, load the fine-tuned LLM model (using transformers, unsloth, etc.) and the RAG retriever (Qdrant client) and store them globally or attached to the app state (e.g., app.state.llm, app.state.retriever).
 
 AC: The LLM model and retriever are loaded once when the FastAPI application starts.
 
@@ -505,43 +505,43 @@ AC: The LLM model and retriever are loaded once when the FastAPI application sta
 
 AC: The LLM model and retriever are loaded efficiently, avoiding reloading on every request.
 
-[ ] Task 6.4.3: Refactor src/inference_pipeline/llm_twin.py (or wherever model prediction occurs). Remove the build_sagemaker_predictor method or any code instantiating sagemaker.huggingface.model.HuggingFacePredictor.
+[x] Task 6.4.3: Refactor src/inference_pipeline/llm_twin.py (or wherever model prediction occurs). Remove the build_sagemaker_predictor method or any code instantiating sagemaker.huggingface.model.HuggingFacePredictor.
 
 AC: SageMaker predictor instantiation code is removed.
 
-[ ] Task 6.4.4: Replace calls like self.\_llm_endpoint.predict(...) with direct calls to the loaded model's generation method (e.g., model.generate(...) or pipeline(...) from the transformers library, or Unsloth's inference methods). Ensure input formatting matches the local model's requirements.
+[x] Task 6.4.4: Replace calls like self.\_llm_endpoint.predict(...) with direct calls to the loaded model's generation method (e.g., model.generate(...) or pipeline(...) from the transformers library, or Unsloth's inference methods). Ensure input formatting matches the local model's requirements.
 
 AC: Inference calls are made directly to the locally loaded model object.
 
-[ ] Task 6.5.1: Update src/inference_pipeline/config.py and potentially src/core/config.py. Remove the SAGEMAKER_ENDPOINT_NAME setting.
+[x] Task 6.5.1: Update src/inference_pipeline/config.py and potentially src/core/config.py. Remove the SAGEMAKER_ENDPOINT_NAME setting.
 
 AC: SageMaker endpoint configuration is removed.
 
-[ ] Task 6.5.2: Verify that settings required for local inference are present and correctly loaded: Hugging Face model ID (MODEL_ID), Hugging Face token (HF_TOKEN if needed for private models), device mapping (cuda, cpu), RAG parameters (chunk size, embedding model), Qdrant connection details.
+[x] Task 6.5.2: Verify that settings required for local inference are present and correctly loaded: Hugging Face model ID (MODEL_ID), Hugging Face token (HF_TOKEN if needed for private models), device mapping (cuda, cpu), RAG parameters (chunk size, embedding model), Qdrant connection details.
 
 AC: All necessary configurations for local inference and RAG are correctly loaded.
 
-[ ] Task 6.6.1: Delete the Python script src/inference_pipeline/aws/deploy_sagemaker_endpoint.py.
+[x] Task 6.6.1: Delete the Python script src/inference_pipeline/aws/deploy_sagemaker_endpoint.py.
 
 AC: The SageMaker deployment script is removed.
 
-[ ] Task 6.6.2: Delete the Python script src/inference_pipeline/aws/delete_sagemaker_endpoint.py.
+[x] Task 6.6.2: Delete the Python script src/inference_pipeline/aws/delete_sagemaker_endpoint.py.
 
 AC: The SageMaker deletion script is removed.
 
-[ ] Task 6.6.3: Remove any remaining imports or usage of the deleted AWS scripts or SageMaker client libraries within the src/inference_pipeline module.
+[x] Task 6.6.3: Remove any remaining imports or usage of the deleted AWS scripts or SageMaker client libraries within the src/inference_pipeline module.
 
 AC: Codebase no longer references SageMaker deployment/deletion scripts or SageMaker predictor classes.
 
-[ ] Task 6.7.1: Update the API Dockerfile (.docker/Dockerfile.api). Add dependencies required for inference: torch, transformers, unsloth (if used), qdrant-client, sentence-transformers (or other embedding model library), opik-sdk. Ensure correct versions compatible with the model.
+[x] Task 6.7.1: Update the API Dockerfile (.docker/Dockerfile.api). Add dependencies required for inference: torch, transformers, unsloth (if used), qdrant-client, sentence-transformers (or other embedding model library), opik-sdk. Ensure correct versions compatible with the model.
 
 AC: Inference-related Python dependencies are added to the API Dockerfile installation steps.
 
-[ ] Task 6.7.2: Ensure the API Dockerfile includes the source code from src/inference_pipeline.
+[x] Task 6.7.2: Ensure the API Dockerfile includes the source code from src/inference_pipeline.
 
 AC: The API Dockerfile copies the inference pipeline source code into the image.
 
-[ ] Task 6.7.3: Plan for model weight handling. Options:
+[x] Task 6.7.3: Plan for model weight handling. Options:
 
 Option 1 (Download at build): Add RUN commands in the Dockerfile to download model weights during the image build (increases image size). Use HF_HUB_CACHE to manage cache location.
 
