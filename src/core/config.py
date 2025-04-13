@@ -44,18 +44,16 @@ class AppSettings(BaseSettings):
 
     # LLM Model config
     HF_TOKEN: str | None = None  # Renamed from HUGGINGFACE_ACCESS_TOKEN
-    MODEL_ID: str = "pauliusztin/LLMTwin-Llama-3.1-8B"
-    TRUST_REMOTE_CODE: bool = False  # Added for local pipeline loading
-
-    MAX_INPUT_TOKENS: int = 1536  # Max length of input text.
-    MAX_TOTAL_TOKENS: int = 2048  # Max length of the generation (including input text).
-    MAX_BATCH_TOTAL_TOKENS: int = 2048  # Limits the number of tokens that can be processed in parallel during the generation.
 
     # Embeddings config
     EMBEDDING_MODEL_ID: str = "BAAI/bge-small-en-v1.5"
     EMBEDDING_MODEL_MAX_INPUT_LENGTH: int = 512
     EMBEDDING_SIZE: int = 384
     EMBEDDING_MODEL_DEVICE: str = "cpu"
+    # RAG config
+    TOP_K: int = 5
+    KEEP_TOP_K: int = 5
+    EXPAND_N_QUERY: int = 5
 
     def patch_localhost(self) -> None:
         # self.MONGO_DATABASE_HOST = "mongodb://localhost:30001,localhost:30002,localhost:30003/?replicaSet=my-replica-set" # Removed

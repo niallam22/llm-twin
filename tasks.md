@@ -573,49 +573,338 @@ AC: Running make local-start-ui launches the Gradio UI, and interacting with it 
 
 AC: Evaluation scripts are updated to work with the refactored local/FastAPI inference setup.
 
-### Story 7A: Final Cleanup, Testing & Configuration
+Story 7: Replace Local Inference with External LLM API
+Goal: Modify the inference pipeline to use an external LLM API (e.g., OpenAI) instead of the locally loaded Hugging Face model, following SOLID and DRY principles.
 
-[ ] Task 7.1.1: Review .env.example and ensure it reflects all necessary environment variables for the new stack (Supabase URL, RabbitMQ URI, Qdrant Host/Port, HF Model ID, etc.) and remove all obsolete variables (Mongo URI, SageMaker Endpoint).
+7.1: Define LLM Interaction Interface (OCP, DIP)
+[x] Task 7.1.1: Create a new directory src/core/llm_clients/.
+AC: The directory src/core/llm_clients/ exists.
+
+[x] Task 7.1.2: Create a new file src/core/llm_clients/**init**.py.
+AC: The file src/core/llm_clients/**init**.py exists and is empty.
+
+[x] Task 7.1.3: Create a new file src/core/llm_clients/base.py.
+AC: The file src/core/llm_clients/base.py exists.
+
+[x] Task 7.1.4: In src/core/llm_clients/base.py, import necessary modules: from abc import ABC, abstractmethod, from typing import List, Dict, Any.
+AC: Imports are correctly added to src/core/llm_clients/base.py.
+
+[x] Task 7.1.5: In src/core/llm_clients/base.py, define an abstract base class LLMClientInterface(ABC).
+AC: The class LLMClientInterface inheriting from ABC is defined.
+
+[x] Task 7.1.6: In src/core/llm_clients/base.py, define an abstract async method generate within LLMClientInterface with the signature async def generate(self, messages: List[Dict[str, str]], \*\*kwargs: Any) -> str:. Add a docstring explaining its purpose (to take formatted messages and return the LLM's text response).
+AC: The abstract async method generate with the specified signature and docstring exists within LLMClientInterface.
+
+7.2: Implement OpenAI Client (SRP)
+[x] Task 7.2.1: Create a new file src/core/llm_clients/openai_client.py.
+AC: The file src/core/llm_clients/openai_client.py exists.
+
+[x] Task 7.2.2: In src/core/llm_clients/openai_client.py, import necessary modules: import openai, import logging, from typing import List, Dict, Any, from .base import LLMClientInterface, from ..config import settings.
+AC: Imports are correctly added to src/core/llm_clients/openai_client.py.
+
+[x] Task 7.2.3: In src/core/llm_clients/openai_client.py, get a logger instance: logger = logging.getLogger(**name**).
+AC: Logger instance is created.
+
+[x] Task 7.2.4: In src/core/llm_clients/openai_client.py, define a class OpenAIClient that inherits from LLMClientInterface.
+AC: The class OpenAIClient(LLMClientInterface) is defined.
+
+[x] Task 7.2.5: Implement the **init** method for OpenAIClient. It should check if settings.OPENAI_API_KEY exists, raise ValueError if not, and initialize self.client = openai.AsyncOpenAI(api_key=settings.OPENAI_API_KEY). Add logging for initialization.
+AC: **init** method correctly initializes the async OpenAI client and handles missing API key.
+
+[x] Task 7.2.6: Implement the async generate method in OpenAIClient conforming to the LLMClientInterface.
+AC: The async generate method signature matches the interface.
+
+[x] Task 7.2.7: Inside async generate, implement a try...except block to handle potential OpenAI API errors (openai.APIError, openai.RateLimitError, openai.AuthenticationError, openai.APIConnectionError, Exception). Log errors appropriately.
+AC: Robust error handling for OpenAI API calls is implemented with logging.
+
+[x] Task 7.2.8: Inside the try block of async generate, make an asynchronous call to self.client.chat.completions.create().
+AC: Asynchronous API call to OpenAI chat completions endpoint is made.
+
+[x] Task 7.2.9: Pass the messages list to chat.completions.create(). Use settings.OPENAI_MODEL_ID for the model parameter. Pass relevant generation parameters from kwargs or use defaults (e.g., temperature=0.7, max_tokens=512).
+AC: messages, model, and generation parameters are correctly passed to the API call.
+
+[x] Task 7.2.10: Extract the generated text content from the first choice in the API response (response.choices[0].message.content). Handle cases where the response might be empty or malformed.
+AC: Generated text is correctly extracted from the API response.
+
+[x] Task 7.2.11: Return the extracted text string from async generate. If an error occurred, return an informative error message or re-raise a custom exception.
+AC: The method returns the generated string on success or handles errors appropriately.
+
+[x] Task 7.2.12: In src/core/llm_clients/**init**.py, add from .base import LLMClientInterface and from .openai_client import OpenAIClient. Add **all** = ["LLMClientInterface", "OpenAIClient"].
+AC: Exports are correctly set up in src/core/llm_clients/**init**.py.
+
+7.3: Update Configuration
+[x] Task 7.3.1: In src/core/config.py, within the AppSettings class, ensure OPENAI_API_KEY: str | None = None and OPENAI_MODEL_ID: str = "gpt-4o-mini" (or similar default) exist.
+AC: AppSettings contains the necessary OpenAI configuration variables.
+
+[x] Task 7.3.2: In src/core/config.py (AppSettings), remove or comment out MODEL_ID if it specifically referred to the fine-tuned Hugging Face model ID. Keep it if it refers to a base model potentially used elsewhere, or rename if ambiguous.
+AC: Obsolete local model ID configuration is removed or clarified in AppSettings.
+
+[x] Task 7.3.3: In src/core/config.py (AppSettings), remove TRUST_REMOTE_CODE: bool = False.
+AC: TRUST_REMOTE_CODE configuration is removed from AppSettings.
+
+[x] Task 7.3.4: In src/inference_pipeline/config.py, remove the entire Settings class or comment out all its contents, as configuration should primarily be managed in src/core/config.py. Ensure no code imports from src/inference_pipeline/config.py.
+AC: src/inference_pipeline/config.py is effectively removed or deprecated, and no code relies on it.
+
+[x] Task 7.3.5: Review src/core/config.py and remove any remaining settings solely related to local model loading/inference (e.g., potentially HF_TOKEN if not needed for other purposes like private dataset access).
+AC: Core configuration is free of obsolete local inference settings.
+
+[x] Task 7.3.6: Update .env.example to include OPENAI_API_KEY=your_openai_api_key_here and OPENAI_MODEL_ID=gpt-4o-mini (or chosen model).
+AC: .env.example includes necessary OpenAI variables.
+
+[x] Task 7.3.7: Update .env.example to remove TRUST_REMOTE_CODE, and potentially MODEL_ID and HF_TOKEN if they were only for the local fine-tuned model. Remove SAGEMAKER_ENDPOINT_NAME.
+AC: .env.example is cleaned of obsolete local inference and SageMaker variables.
+
+7.4: Refactor Inference Logic (LLMTwin)
+[x] Task 7.4.1: In src/inference_pipeline/llm_twin.py, remove the llm_pipeline and tokenizer parameters from the generate method signature.
+AC: generate method signature in LLMTwin is updated.
+
+[x] Task 7.4.2: In src/inference_pipeline/llm_twin.py, remove the llm_pipeline and tokenizer parameters from the call_llm_service method signature.
+AC: call_llm_service method signature in LLMTwin is updated.
+
+[x] Task 7.4.3: In src/inference_pipeline/llm_twin.py (generate method), add a new parameter llm_client: LLMClientInterface (import LLMClientInterface from src.core.llm_clients).
+AC: generate method now accepts an LLMClientInterface instance.
+
+[x] Task 7.4.4: In src/inference_pipeline/llm_twin.py (generate method), pass the llm_client instance to the call_llm_service method call.
+AC: llm_client is passed down to call_llm_service.
+
+[x] Task 7.4.5: In src/inference_pipeline/llm_twin.py (call_llm_service method), add the llm_client: LLMClientInterface parameter to its signature.
+AC: call_llm_service signature now accepts the client instance.
+
+[x] Task 7.4.6: In src/inference_pipeline/llm_twin.py (call_llm_service method), remove all code related to tokenizer.apply_chat_template, calculating input_token_count, calculating max_new_tokens, and calling llm_pipeline(...).
+AC: Local model execution logic is completely removed from call_llm_service.
+
+[x] Task 7.4.7: In src/inference_pipeline/llm_twin.py (call_llm_service method), add an await call to llm_client.generate(messages=messages). Store the result in the answer variable.
+AC: The method now calls the generate method of the injected llm_client.
+
+[x] Task 7.4.8: In src/inference_pipeline/llm_twin.py (call_llm_service method), remove the self.\_mock check or adapt it if mocking external calls is still desired (potentially by injecting a mock client). For now, assume removal. Remove the mock: bool parameter from generate if self.\_mock usage is removed.
+AC: Local mocking logic based on self.\_mock is removed.
+
+[x] Task 7.4.9: In src/inference_pipeline/llm_twin.py (generate method), update the opik_context.update_current_trace metadata to use settings.OPENAI_MODEL_ID instead of settings.MODEL_ID. Remove embedding_model_id if it's not relevant here or move it to RAG context. Adjust token calculation logic if necessary (input tokens are now based on the formatted prompt before sending to the API, output tokens might need estimation or retrieval if the API provides it). For simplicity, can remove token counts if not critical or reliably obtained.
+AC: Opik trace metadata is updated for the external model, token calculation adjusted/removed.
+
+[x] Task 7.4.10: In src/inference_pipeline/llm_twin.py, remove the unused imports pipeline, AutoTokenizer, PreTrainedTokenizerBase, Pipeline, QdrantClient. Add import for LLMClientInterface.
+AC: Unused imports related to local models are removed, necessary client interface imported.
+
+7.5: Integrate Client into API Layer
+[x] Task 7.5.1: In src/api/main.py, import OpenAIClient from src.core.llm_clients.
+AC: OpenAIClient is imported in main.py.
+
+[x] Task 7.5.2: In src/api/main.py, modify the lifespan context manager's startup phase:
+
+- Initialize app.state.llm_client = None.
+- Add a try...except block to instantiate app.state.llm_client = OpenAIClient().
+- Log success or failure of client initialization.
+- Remove the loading logic for app.state.llm_pipeline and app.state.tokenizer.
+- Keep the Qdrant client loading logic.
+  AC: OpenAIClient is instantiated on startup and stored in app.state, local model loading is removed.
+
+[x] Task 7.5.3: In src/api/main.py, modify the lifespan context manager's shutdown phase:
+
+- Remove the deletion logic for app.state.llm_pipeline and app.state.tokenizer.
+- Add logic to potentially close the OpenAIClient if its underlying library requires it (e.g., await app.state.llm_client.close() if implemented), though often not needed for HTTP clients. Add logging.
+  AC: API shutdown logic is updated to remove local model cleanup and potentially add external client cleanup.
+
+[x] Task 7.5.4: In src/api/routers/inference.py, remove the retrieval of llm_pipeline and tokenizer from request_obj.app.state.
+AC: Code accessing local model/tokenizer from app state is removed.
+
+[x] Task 7.5.5: In src/api/routers/inference.py, retrieve the LLM client: llm_client = request_obj.app.state.llm_client.
+AC: The external LLM client is retrieved from app state.
+
+[x] Task 7.5.6: In src/api/routers/inference.py, add a check: if not llm_client: raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail="LLM service is not ready.").
+AC: A check ensures the LLM client was successfully initialized on startup.
+
+[x] Task 7.5.7: In src/api/routers/inference.py, update the call to llm_twin_instance.generate to pass the retrieved llm_client: result = await llm_twin_instance.generate(..., llm_client=llm_client).
+AC: The llm_client instance is passed to the generate method.
+
+7.6: Update Dependencies
+[x] Task 7.6.1: In pyproject.toml, under [tool.poetry.dependencies], remove torch, transformers, accelerate. Remove unsloth if present.
+AC: Local model dependencies are removed from pyproject.toml.
+
+[x] Task 7.6.2: In pyproject.toml, under [tool.poetry.dependencies], add openai = "^<latest_version>". Check and add httpx if the openai library requires it explicitly or for other async calls. Keep requests if used by the UI.
+AC: OpenAI client library dependency is added to pyproject.toml.
+
+[x] Task 7.6.3: Run poetry lock --no-update in the terminal.
+AC: Poetry lock file is updated to reflect dependency changes.
+
+[x] Task 7.6.4: Run make install or poetry install in the terminal.
+AC: Project dependencies are updated in the virtual environment.
+
+7.7: Update Docker Configuration
+[x] Task 7.7.1: In .docker/Dockerfile.api, remove any RUN commands related to downloading Hugging Face models (e.g., using huggingface-cli download or Python scripts).
+AC: Dockerfile no longer attempts to download local model weights.
+
+[x] Task 7.7.2: Verify that the poetry install command in .docker/Dockerfile.api correctly installs the new dependencies (openai) and excludes the removed ones (torch, transformers, etc.).
+AC: Dockerfile installs the correct set of dependencies.
+
+[x] Task 7.7.3: In docker-compose.yml, review the api service definition. Consider reducing allocated resources (e.g., remove deploy.resources.reservations.devices if GPU was reserved) unless RAG processing is resource-intensive.
+AC: Resource allocation for the api service in docker-compose.yml is reviewed and potentially adjusted.
+
+7.8: Update UI and Testing
+[x] Task 7.8.1: In src/inference_pipeline/ui.py, review the predict function. It already uses requests to call the /generate endpoint. Ensure the API_ENDPOINT variable points correctly to the FastAPI service (e.g., http://api:80 within Docker Compose or http://localhost:8000 locally). No major changes likely needed here as it interacts via API.
+AC: Gradio UI correctly calls the updated FastAPI /generate endpoint.
+
+[x] Task 7.8.2: In Makefile, verify the call-inference-pipeline command correctly sends a POST request to the /generate endpoint. No changes likely needed.
+AC: Makefile command call-inference-pipeline works with the modified backend.
+
+[x] Task 7.8.3: In src/inference_pipeline/main.py (if used for standalone testing), update it to instantiate and use the OpenAIClient instead of the local transformers pipeline.
+AC: Standalone inference test script (src/inference_pipeline/main.py) is updated to use the new client, or is removed if obsolete.
+
+Story 8: Remove Training Pipeline and Associated Components
+Goal: Eliminate all code, configuration, dependencies, evaluation artifacts, and documentation related to fine-tuning the local model.
+
+8.1: Delete Training Source Code
+[ ] Task 8.1.1: Delete the entire directory src/training_pipeline/.
+AC: The directory src/training_pipeline/ no longer exists.
+
+[ ] Task 8.1.2: Delete the entire directory src/feature_pipeline/generate_dataset/.
+AC: The directory src/feature_pipeline/generate_dataset/ no longer exists.
+
+[ ] Task 8.1.3: Delete the file src/core/aws/create_sagemaker_role.py.
+AC: The file src/core/aws/create_sagemaker_role.py no longer exists.
+
+[ ] Task 8.1.4: Delete the directory src/inference_pipeline/aws/ if it exists and contains SageMaker deployment/deletion scripts for the fine-tuned model.
+AC: The directory src/inference_pipeline/aws/ and its contents (if any) are removed.
+
+[ ] Task 8.1.5: Search the entire src/ directory for any remaining imports from src.training_pipeline, src.feature_pipeline.generate_dataset, or src.core.aws.create_sagemaker_role and remove them. Check files like src/core/**init**.py, src/feature_pipeline/main.py, etc.
+AC: No dangling imports from deleted training modules remain in the codebase.
+
+8.2: Clean Configuration
+[ ] Task 8.2.1: In src/core/config.py (AppSettings), remove the DATASET_ID variable (related to Comet artifact for training).
+AC: DATASET_ID is removed from AppSettings.
+
+[ ] Task 8.2.2: In src/core/config.py (AppSettings), remove the AWS_ARN_ROLE variable if its sole purpose was SageMaker training/deployment. If used for other AWS services, keep it.
+AC: AWS_ARN_ROLE is removed from AppSettings if it was only for SageMaker training/deployment.
+
+[ ] Task 8.2.3: In .env.example, remove the lines for DATASET_ID and potentially AWS_ARN_ROLE (matching the changes in AppSettings).
+AC: .env.example is cleaned of training-specific variables.
+
+[ ] Task 8.2.4: Delete the file sagemaker_execution_role.json from the project root if it exists. Add sagemaker_execution_role.json to .gitignore.
+AC: The generated SageMaker role file is deleted and ignored.
+
+8.3: Remove Training Dependencies
+[ ] Task 8.3.1: In pyproject.toml, under [tool.poetry.dependencies], remove datasets (if only used for loading training data), peft, trl, bitsandbytes. Remove unsloth if it was used specifically for fine-tuning support.
+AC: Training-specific dependencies are removed from pyproject.toml.
+
+[ ] Task 8.3.2: In pyproject.toml, check if flash-attn was added for training; if so, remove it.
+AC: flash-attn dependency is removed if it was only for training.
+
+[ ] Task 8.3.3: Run poetry lock --no-update in the terminal.
+AC: Poetry lock file is updated to reflect removed dependencies.
+
+[ ] Task 8.3.4: Run make install or poetry install in the terminal.
+AC: Training dependencies are removed from the virtual environment.
+
+8.4: Clean Makefile
+[ ] Task 8.4.1: In Makefile, delete the targets: start-training-pipeline-dummy-mode, start-training-pipeline, local-start-training-pipeline.
+AC: Makefile targets for starting training are removed.
+
+[ ] Task 8.4.2: In Makefile, delete the target: download-instruct-dataset.
+AC: Makefile target for downloading the instruct dataset is removed.
+
+[ ] Task 8.4.3: In Makefile, delete the target: create-sagemaker-execution-role.
+AC: Makefile target for creating the SageMaker role is removed.
+
+[ ] Task 8.4.4: In Makefile, delete the target: local-generate-instruct-dataset.
+AC: Makefile target for generating the instruct dataset is removed.
+
+[ ] Task 8.4.5: If deploy-inference-pipeline and delete-inference-pipeline-deployment targets existed specifically for deploying the fine-tuned model via SageMaker (as opposed to a generic API deployment), delete them. (Based on previous refactoring, these might already be gone or repurposed).
+AC: Obsolete SageMaker deployment targets for the fine-tuned model are removed from Makefile.
+
+8.5: Adapt Evaluation Scripts
+[ ] Task 8.5.1: In src/inference_pipeline/evaluation/evaluate.py (main function):
+
+- Remove the call to create_dataset_from_artifacts. Evaluation should perhaps run on a standard benchmark dataset or a curated set of prompts not tied to the old training artifacts.
+- Define a new static list of evaluation prompts/inputs, or load from a simple file/benchmark dataset.
+- Update the evaluation_task function to call the inference API endpoint (requests.post) or instantiate and use OpenAIClient directly (passing the necessary input from the new evaluation data source). Ensure enable_rag=False.
+- Remove metrics that relied heavily on comparing against the fine-tuning data (e.g., LevenshteinRatio might be less relevant). Keep metrics like Hallucination, Moderation, Style.
+- Update experiment_config to reflect the external model ID (e.g., settings.OPENAI_MODEL_ID).
+  AC: evaluate.py is adapted to use the external LLM, a suitable evaluation dataset (not training artifacts), and relevant metrics.
+
+[ ] Task 8.5.2: In src/inference_pipeline/evaluation/evaluate_rag.py (main function):
+
+- Remove the call to create_dataset_from_artifacts. Use the same new evaluation data source as in evaluate.py.
+- Update the evaluation_task function: It needs to perform RAG retrieval (instantiate VectorRetriever, call retrieve_top_k, rerank) and then call the external LLM API/client with the query and retrieved context. Ensure enable_rag=True equivalent logic is applied.
+- Keep RAG-specific metrics (ContextRecall, ContextPrecision). Keep Hallucination as well.
+- Update experiment_config.
+  AC: evaluate_rag.py is adapted to use the external LLM with RAG, a suitable evaluation dataset, and relevant metrics.
+
+[ ] Task 8.5.3: In src/inference_pipeline/evaluation/evaluate_monitoring.py:
+
+- Verify the evaluation_task correctly extracts query, context, and output from the format logged by Opik for the new API calls. Adjust parsing if needed.
+- Ensure metrics (Hallucination, Moderation, AnswerRelevance, Style) are appropriate for evaluating production logs from the external LLM.
+- Update experiment_config.
+  AC: evaluate_monitoring.py correctly processes logs from the new inference setup and uses relevant metrics.
+
+[ ] Task 8.5.4: Review src/core/opik_utils.py:
+
+- Remove the create_dataset_from_artifacts function as it relies on training artifacts.
+- Check if add_to_dataset_with_sampling is still needed for monitoring dataset creation; if so, ensure the dataset_name used matches the one expected by evaluate_monitoring.py.
+  AC: opik_utils.py is cleaned of functions dependent on training artifacts.
+
+  8.6: Update Documentation
+  [ ] Task 8.6.1: In README.md:
+
+- Remove the "Training Pipeline" section/component from the architecture diagram and description.
+- In the "Lessons" table, remove or mark as deprecated/removed the lessons specifically about generating instruct datasets and the fine-tuning pipeline (Lessons 6, 7). Update descriptions of related lessons (like Evaluation, Inference) if needed.
+- Remove src/training_pipeline/ and src/feature_pipeline/generate_dataset/ from the Project Structure description.
+- Search for and remove any mentions of fine-tuning, LoRA, QLoRA, instruct datasets, SageMaker training jobs.
+  AC: README.md accurately reflects the removal of the training pipeline in architecture, lessons, and structure sections.
+
+[ ] Task 8.6.2: In INSTALL_AND_USAGE.md:
+
+- Remove the section "Step 5: Generating the instruct dataset".
+- Remove the section "Step 6: Setting up AWS SageMaker" entirely, including creating the execution role.
+- Remove the section "Step 7: Starting the fine-tuning pipeline".
+- Update the "Configure" section to remove mentions of AWS_ARN_ROLE (if removed from core config) and DATASET_ID. Ensure OPENAI_API_KEY setup is clear.
+- Update the "Cloud Services" table to remove SageMaker for training.
+- Remove dependencies listed for training (e.g., needing specific AWS permissions for training roles).
+- Update the evaluation steps (like "Step 8: Runing the evaluation pipelines") to reflect the changes made (e.g., no longer relying on instruct dataset artifacts).
+- Ensure all AWS/SageMaker references related to training or deploying the fine-tuned model are removed.
+  AC: INSTALL_AND_USAGE.md is updated to remove all setup, configuration, and usage instructions related to the training pipeline and its artifacts/infrastructure.
+
+### Story 9A: Final Cleanup, Testing & Configuration
+
+[ ] Task 9.1.1: Review .env.example and ensure it reflects all necessary environment variables for the new stack (Supabase URL, RabbitMQ URI, Qdrant Host/Port, HF Model ID, etc.) and remove all obsolete variables (Mongo URI, SageMaker Endpoint).
 
 AC: .env.example accurately lists all required configuration variables for the refactored application.
 
-[ ] Task 7.1.2: Review all configuration loading logic in src/core/config.py and any service-specific config files (src/\*/config.py). Ensure consistency, remove unused settings, and verify defaults are sensible.
+[ ] Task 9.1.2: Review all configuration loading logic in src/core/config.py and any service-specific config files (src/\*/config.py). Ensure consistency, remove unused settings, and verify defaults are sensible.
 
 AC: Configuration loading code is clean, consistent, and only loads necessary settings.
 
-[ ] Task 7.2.1: Perform a final review of docker-compose.yml. Check service names (api, cdc-listener, feature-pipeline, mq, qdrant, postgres or external Supabase config), build contexts, image names, environment variables, port mappings, volumes, and depends_on relationships.
+[ ] Task 9.2.1: Perform a final review of docker-compose.yml. Check service names (api, cdc-listener, feature-pipeline, mq, qdrant, postgres or external Supabase config), build contexts, image names, environment variables, port mappings, volumes, and depends_on relationships.
 
 AC: docker-compose.yml accurately defines the services, dependencies, and configurations for the complete refactored stack.
 
-[ ] Task 7.2.2: Ensure resource limits (memory, CPU) are considered or added to docker-compose.yml services if needed, especially for the api service running the LLM.
+[ ] Task 9.2.2: Ensure resource limits (memory, CPU) are considered or added to docker-compose.yml services if needed, especially for the api service running the LLM.
 
 AC: Resource allocation in docker-compose.yml is reviewed and potentially adjusted.
 
-[ ] Task 7.3.1: Perform a final review of the Makefile. Verify that install, local-start, local-stop, local-logs, local-test-_, call-inference-pipeline, local-start-ui, evaluate-_ commands work correctly with the new structure.
+[ ] Task 9.3.1: Perform a final review of the Makefile. Verify that install, local-start, local-stop, local-logs, local-test-_, call-inference-pipeline, local-start-ui, evaluate-_ commands work correctly with the new structure.
 
 AC: All primary Makefile commands function as expected against the refactored application.
 
-[ ] Task 7.3.2: Remove any obsolete Makefile commands related to MongoDB, old CDC, Lambda deployment, or SageMaker deployment.
+[ ] Task 9.3.2: Remove any obsolete Makefile commands related to MongoDB, old CDC, Lambda deployment, or SageMaker deployment.
 
 AC: Obsolete commands are removed from the Makefile.
 
-[ ] Task 7.4.1: Write unit tests for the src/core/db/supabase_client.py functions (mocking the actual DB connection).
+[ ] Task 9.4.1: Write unit tests for the src/core/db/supabase_client.py functions (mocking the actual DB connection).
 
 AC: Unit tests verify the basic functionality of the Supabase client module.
 
-[ ] Task 7.4.2: Write unit tests for the src/cdc_listener/listener.py logic (mocking DB connection/notifications and MQ publishing). Test payload parsing and publishing logic.
+[ ] Task 9.4.2: Write unit tests for the src/cdc_listener/listener.py logic (mocking DB connection/notifications and MQ publishing). Test payload parsing and publishing logic.
 
 AC: Unit tests verify the core logic of the CDC listener service.
 
-[ ] Task 7.4.3: Write unit/integration tests for the FastAPI endpoints in src/api/routers/crawling.py. Use FastAPI's TestClient. Mock external calls (crawler extraction, DB saves) for unit tests, or use a test database for integration tests.
+[ ] Task 9.4.3: Write unit/integration tests for the FastAPI endpoints in src/api/routers/crawling.py. Use FastAPI's TestClient. Mock external calls (crawler extraction, DB saves) for unit tests, or use a test database for integration tests.
 
 AC: Unit/integration tests verify the behavior of the crawler API endpoints.
 
-[ ] Task 7.4.4: Write unit/integration tests for the FastAPI endpoint in src/api/routers/inference.py. Use TestClient. Mock the LLM generation and RAG retrieval for unit tests.
+[ ] Task 9.4.4: Write unit/integration tests for the FastAPI endpoint in src/api/routers/inference.py. Use TestClient. Mock the LLM generation and RAG retrieval for unit tests.
 
 AC: Unit/integration tests verify the behavior of the inference API endpoint.
 
-[ ] Task 7.5.1: Execute end-to-end test scenario 1:
+[ ] Task 9.5.1: Execute end-to-end test scenario 1:
 
 Start all services (make local-start).
 
@@ -635,7 +924,7 @@ Verify the response includes content derived from the newly ingested article.
 
 AC: End-to-end data flow from link ingestion through RAG-based inference is successful.
 
-[ ] Task 7.5.2: Execute end-to-end test scenario 2:
+[ ] Task 9.5.2: Execute end-to-end test scenario 2:
 
 Start all services (make local-start).
 
@@ -655,32 +944,32 @@ Verify the response includes content derived from the newly ingested raw text.
 
 AC: End-to-end data flow from raw text ingestion through RAG-based inference is successful.
 
-### Story 7B: Documentation Updates
+### Story 9B: Documentation Updates
 
-[ ] Task 7.6.1: Update the Architecture Overview section in README.md to describe the new components (Supabase, FastAPI, Postgres CDC Listener). Remove mentions of MongoDB, Lambda, SageMaker endpoint.
+[ ] Task 9.6.1: Update the Architecture Overview section in README.md to describe the new components (Supabase, FastAPI, Postgres CDC Listener). Remove mentions of MongoDB, Lambda, SageMaker endpoint.
 
 AC: README accurately reflects the refactored architecture.
 
-[ ] Task 7.6.2: Update any architecture diagrams referenced or included in the documentation.
+[ ] Task 9.6.2: Update any architecture diagrams referenced or included in the documentation.
 
 AC: Architecture diagrams are updated to match the new flow.
 
-[ ] Task 7.6.3: Update the Setup/Installation instructions in README.md to include Supabase setup (local or cloud) and remove MongoDB setup.
+[ ] Task 9.6.3: Update the Setup/Installation instructions in README.md to include Supabase setup (local or cloud) and remove MongoDB setup.
 
 AC: README setup instructions are correct for the new architecture.
 
-[ ] Task 7.7.1: Update INSTALL_AND_USAGE.md. Modify dependency installation steps if necessary (e.g., system dependencies for psycopg2).
+[ ] Task 9.7.1: Update INSTALL_AND_USAGE.md. Modify dependency installation steps if necessary (e.g., system dependencies for psycopg2).
 
 AC: Installation dependencies in INSTALL_AND_USAGE.md are correct.
 
-[ ] Task 7.7.2: Update INSTALL_AND_USAGE.md. Add instructions for setting up Supabase (connecting to cloud or running local Docker). Include details on obtaining the DB URL. Remove MongoDB setup instructions.
+[ ] Task 9.7.2: Update INSTALL_AND_USAGE.md. Add instructions for setting up Supabase (connecting to cloud or running local Docker). Include details on obtaining the DB URL. Remove MongoDB setup instructions.
 
 AC: Database setup instructions in INSTALL_AND_USAGE.md are correct for Supabase.
 
-[ ] Task 7.7.3: Update INSTALL_AND_USAGE.md. Modify usage examples (e.g., how to trigger ingestion, how to call inference) to use the new Makefile commands or direct curl calls to the FastAPI endpoints. Remove examples using Lambda invocation or direct SageMaker calls.
+[ ] Task 9.7.3: Update INSTALL_AND_USAGE.md. Modify usage examples (e.g., how to trigger ingestion, how to call inference) to use the new Makefile commands or direct curl calls to the FastAPI endpoints. Remove examples using Lambda invocation or direct SageMaker calls.
 
 AC: Usage examples in INSTALL_AND_USAGE.md correctly demonstrate interaction with the refactored application via FastAPI.
 
-[ ] Task 7.7.4: Review INSTALL_AND_USAGE.md for any remaining references to AWS Lambda or AWS SageMaker endpoints in the context of core application deployment/usage (training pipeline usage might still involve SageMaker jobs, which is outside this refactoring's scope).
+[ ] Task 9.7.4: Review INSTALL_AND_USAGE.md for any remaining references to AWS Lambda or AWS SageMaker endpoints in the context of core application deployment/usage (training pipeline usage might still involve SageMaker jobs, which is outside this refactoring's scope).
 
 AC: INSTALL_AND_USAGE.md is free of obsolete deployment/usage instructions related to Lambda/SageMaker endpoints for crawling and inference serving.

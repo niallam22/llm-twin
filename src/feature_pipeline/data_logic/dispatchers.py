@@ -27,18 +27,42 @@ logger = get_logger(__name__)
 class RawDispatcher:
     @staticmethod
     def handle_mq_message(message: dict) -> DataModel:
-        data_type = message.get("type")
+        table = message.get("table")
+        operation = message.get("operation")
+        data = message.get("data")
 
-        logger.info("Received message.", data_type=data_type)
+        if not table or not operation or data is None:
+            logger.error("Invalid CDC message format received.", message=message)
+            raise ValueError("Invalid CDC message format: missing 'table', 'operation', or 'data'")
 
-        if data_type == "posts":
-            return PostsRawModel(**message)
-        elif data_type == "articles":
-            return ArticleRawModel(**message)
-        elif data_type == "repositories":
-            return RepositoryRawModel(**message)
+        logger.info("Received CDC message.", table=table, operation=operation)
+
+        model_instance: DataModel
+        if table == "posts":
+            model_instance = PostsRawModel(**data)
+            model_instance.type = "posts"
+        elif table == "articles":
+            model_instance = ArticleRawModel(**data)
+            model_instance.type = "articles"
+        elif table == "repositories":
+            model_instance = RepositoryRawModel(**data)
+            model_instance.type = "repositories"
         else:
-            raise ValueError("Unsupported data type")
+            logger.warning("Unsupported table type received.", table=table)
+            raise ValueError(f"Unsupported table type: {table}")
+
+        # Assign table and operation from the envelope
+        model_instance.table = table
+        model_instance.operation = operation
+
+        # Ensure entry_id is populated (assuming it's in the 'data' dict)
+        if 'id' in data: # Common primary key name
+             model_instance.entry_id = data['id']
+        elif 'entry_id' not in data: # Check if already set by model init
+             logger.warning("Could not determine entry_id from data.", data=data)
+             # Handle cases where ID might be missing or named differently if necessary
+
+        return model_instance
 
 
 class CleaningHandlerFactory:
