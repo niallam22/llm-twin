@@ -57,27 +57,15 @@ local-test-raw-text: # Make a call to the local API to submit raw text.
 local-test-retriever: # Test the RAG retriever using your Poetry env
 	cd src/feature_pipeline && poetry run python -m retriever
 
-local-generate-instruct-dataset: # Generate the fine-tuning instruct dataset using your Poetry env.
-	cd src/feature_pipeline && poetry run python -m generate_dataset.generate
 
 # ===================================================
 # -- AWS SageMaker: Training & Inference pipelines --
 # ===================================================
 
-download-instruct-dataset: # Download the fine-tuning instruct dataset using your Poetry env.
-	cd src/training_pipeline && PYTHONPATH=$(PYTHONPATH) poetry run python download_dataset.py
 
-create-sagemaker-execution-role: # Create an AWS SageMaker execution role you need for the training and inference pipelines.
-	cd src && PYTHONPATH=$(PYTHONPATH) poetry run python -m core.aws.create_execution_role
 
-start-training-pipeline-dummy-mode: # Start the training pipeline in AWS SageMaker.
-	cd src/training_pipeline && poetry run python run_on_sagemaker.py --is-dummy
 
-start-training-pipeline: # Start the training pipeline in AWS SageMaker.
-	cd src/training_pipeline && poetry run python run_on_sagemaker.py
 
-local-start-training-pipeline: # Start the training pipeline in your Poetry env.
-	cd src/training_pipeline && poetry run python -m finetune
 
 
 call-inference-pipeline: # Call the local FastAPI inference endpoint.

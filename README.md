@@ -13,7 +13,7 @@
 
 ## 🎯 What you'll learn
 
-*By finishing the **"LLM Twin: Building Your Production-Ready AI Replica"** free course, you will learn how to design, train, and deploy a production-ready LLM twin of yourself powered by LLMs, vector DBs, and LLMOps good practices.*
+_By finishing the **"LLM Twin: Building Your Production-Ready AI Replica"** free course, you will learn how to design, train, and deploy a production-ready LLM twin of yourself powered by LLMs, vector DBs, and LLMOps good practices._
 
 **No more isolated scripts or Notebooks!** Learn production ML by building and deploying an end-to-end production-grade LLM system.
 
@@ -46,19 +46,10 @@ You will also **learn** to **leverage MLOps best practices**, such as experiment
 - Every message will be cleaned, chunked, embedded and loaded into a [Qdrant](https://qdrant.tech/?utm_source=decodingml&utm_medium=referral&utm_campaign=llm-course) vector DB.
 - In the bonus series, we refactor the cleaning, chunking, and embedding logic using [Superlinked](https://github.com/superlinked/superlinked?utm_source=community&utm_medium=github&utm_campaign=oscourse), a specialized vector compute engine. We will also load and index the vectors to a [Redis vector DB](https://redis.io/solutions/vector-search/).
 
-### The training pipeline
-
-- Create a custom instruction dataset based on your custom digital data to do SFT.
-- Fine-tune an LLM using LoRA or QLoRA.
-- Use [Comet ML's](https://www.comet.com/signup/?utm_source=decoding_ml&utm_medium=partner&utm_content=github) experiment tracker to monitor the experiments.
-- Evaluate the LLM using [Opik](https://github.com/comet-ml/opik)
-- Save and version the best model to the [Hugging Face model registry](https://huggingface.co/models).
-- Run and automate the training pipeline using [AWS SageMaker](https://aws.amazon.com/sagemaker/).
-
 ### The inference pipeline
 
-- Load the fine-tuned LLM from the [Hugging Face model registry](https://huggingface.co/models).
-- Deploy the LLM as a scalable REST API using [AWS SageMaker inference endpoints](https://aws.amazon.com/sagemaker/deploy/).
+- Load the LLM (e.g., via OpenAI API or a local model server).
+- Deploy the LLM as a scalable REST API using FastAPI.
 - Enhance the prompts using advanced RAG techniques.
 - Monitor the prompts and LLM generated results using [Opik](https://github.com/comet-ml/opik)
 - In the bonus series, we refactor the advanced RAG layer to write more optimal queries using [Superlinked](https://github.com/superlinked/superlinked?utm_source=community&utm_medium=github&utm_campaign=oscourse).
@@ -70,12 +61,11 @@ You will also **learn** to **leverage MLOps best practices**, such as experiment
 
 Along the 4 microservices, you will learn to integrate 4 serverless tools:
 
-* [Comet ML](https://www.comet.com/signup/?utm_source=decoding_ml&utm_medium=partner&utm_content=github) as your experiment tracker and data registry;
-* [Qdrant](https://qdrant.tech/?utm_source=decodingml&utm_medium=referral&utm_campaign=llm-course) as your vector DB;
-* [AWS SageMaker](https://aws.amazon.com/sagemaker/) as your ML infrastructure;
-* [Opik](https://github.com/comet-ml/opik) as your prompt evaluation and monitoring tool.
+- [Comet ML](https://www.comet.com/signup/?utm_source=decoding_ml&utm_medium=partner&utm_content=github) as your experiment tracker and data registry;
+- [Qdrant](https://qdrant.tech/?utm_source=decodingml&utm_medium=referral&utm_campaign=llm-course) as your vector DB;
+- [Opik](https://github.com/comet-ml/opik) as your prompt evaluation and monitoring tool.
 
-----
+---
 
 <table style="border-collapse: collapse; border: none;">
   <tr style="border: none;">
@@ -102,6 +92,7 @@ Along the 4 microservices, you will learn to integrate 4 serverless tools:
 ## 👥 Who should join?
 
 **This course is ideal for:**
+
 - ML/AI engineers who want to learn to engineer production-ready LLM & RAG systems using LLMOps good principles
 - Data Engineers, Data Scientists, and Software Engineers wanting to understand the engineering behind LLM & RAG systems
 
@@ -109,11 +100,11 @@ Along the 4 microservices, you will learn to integrate 4 serverless tools:
 
 ## 🎓 Prerequisites
 
-| Category | Requirements |
-|----------|-------------|
-| **Skills** | Basic understanding of Python and Machine Learning |
-| **Hardware** | Any modern laptop/workstation will do the job, as the LLM fine-tuning and inference will be done on AWS SageMaker. |
-| **Level** | Intermediate |
+| Category     | Requirements                                                                                                                                                                 |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Skills**   | Basic understanding of Python and Machine Learning                                                                                                                           |
+| **Hardware** | Any modern laptop/workstation will do the job, as the LLM inference runs via a local FastAPI service (or external API like OpenAI). Resource needs depend on RAG components. |
+| **Level**    | Intermediate                                                                                                                                                                 |
 
 ## 💰 Cost structure
 
@@ -125,6 +116,7 @@ All tools used throughout the course will stick to their free tier, except:
 ## 🥂 Open-source course: Participation is open and Free
 
 As an open-source course, you don't have to enroll. Everything is self-paced, free of charge and with its resources freely accessible as follows:
+
 - **code**: this GitHub repository
 - **articles**: [Decoding ML](https://medium.com/decodingml/llm-twin-course/home)
 
@@ -141,6 +133,7 @@ You can read everything at your own pace.
 This self-paced course consists of 12 comprehensive lessons covering theory, system design, and hands-on implementation.
 
 Our recommendation for each module:
+
 1. Read the article
 2. Run the code to replicate our results
 3. Go deeper into the code by reading the `src` Python modules
@@ -148,22 +141,20 @@ Our recommendation for each module:
 > [!NOTE]
 > Check the [INSTALL_AND_USAGE](https://github.com/decodingml/llm-twin-course/blob/main/INSTALL_AND_USAGE.md) doc for a step-by-step installation and usage guide.
 
-| Lesson | Article | Category | Description | Source Code |
-|--------|---------|----------|-------------|-------------|
-| 1 | [An End-to-End Framework for Production-Ready LLM Systems](https://medium.com/decodingml/an-end-to-end-framework-for-production-ready-llm-systems-by-building-your-llm-twin-2cc6bb01141f) | System Design | Learn the overall architecture and design principles of production LLM systems. | No code |
-| 2 | [Data Crawling](https://medium.com/decodingml/your-content-is-gold-i-turned-3-years-of-blog-posts-into-an-llm-training-d19c265bdd6e) | Data Engineering | Learn to crawl and process social media content for LLM training. | `src/data_crawling` |
-| 3 | [CDC Magic](https://medium.com/decodingml/i-replaced-1000-lines-of-polling-code-with-50-lines-of-cdc-magic-4d31abd3bc3b) | Data Engineering | Learn to implement Change Data Capture (CDC) for syncing two data sources. | `src/data_cdc` |
-| 4 | [Feature Streaming Pipelines](https://medium.com/decodingml/sota-python-streaming-pipelines-for-fine-tuning-llms-and-rag-in-real-time-82eb07795b87) | Feature Pipeline | Build real-time streaming pipelines for LLM and RAG data processing. | `src/feature_pipeline` |
-| 5 | [Advanced RAG Algorithms](https://medium.com/decodingml/the-4-advanced-rag-algorithms-you-must-know-to-implement-5d0c7f1199d2) | Feature Pipeline | Implement advanced RAG techniques for better retrieval. | `src/feature_pipeline` |
-| 6 | [Generate Fine-Tuning Instruct Datasets](https://medium.com/decodingml/turning-raw-data-into-fine-tuning-datasets-dc83657d1280) | Training Pipeline | Create custom instruct datasets for LLM fine-tuning. | `src/feature_pipeline/generate_dataset` |
-| 7 | [LLM Fine-tuning Pipeline](https://medium.com/decodingml/8b-parameters-1-gpu-no-problems-the-ultimate-llm-fine-tuning-pipeline-f68ef6c359c2) | Training Pipeline | Build an end-to-end LLM fine-tuning pipeline and deploy it to AWS SageMaker. | `src/training_pipeline` |
-| 8 | [LLM & RAG Evaluation](https://medium.com/decodingml/the-engineers-framework-for-llm-rag-evaluation-59897381c326) | Training Pipeline | Learn to evaluate LLM and RAG system performance. | `src/inference_pipeline/evaluation` |
-| 9 | [Implement and Deploy the RAG Inference Pipeline](https://medium.com/decodingml/beyond-proof-of-concept-building-rag-systems-that-scale-e537d0eb063a) | Inference Pipeline | Design,  implement and deploy the RAG inference to AWS SageMaker. | `src/inference_pipeline` |
-| 10 | [Prompt Monitoring](https://medium.com/decodingml/the-ultimate-prompt-monitoring-pipeline-886cbb75ae25) | Inference Pipeline | Build the prompt monitoring and production evaluation pipeline. | `src/inference_pipeline` |
-| 11 | [Refactor the RAG module using 74.3% Less Code ](https://medium.com/decodingml/build-a-scalable-rag-ingestion-pipeline-using-74-3-less-code-ac50095100d6) | Bonus on RAG | Optimize the RAG system. | `src/bonus_superlinked_rag` |
-| 12 | [Multi-Index RAG Apps](https://medium.com/decodingml/build-multi-index-advanced-rag-apps-bd33d2f0ec5c) | Bonus on RAG | Build advanced multi-index RAG apps. | `src/bonus_superlinked_rag` |
+| Lesson | Article                                                                                                                                                                                   | Category           | Description                                                                         | Source Code                         |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------ | ----------------------------------------------------------------------------------- | ----------------------------------- |
+| 1      | [An End-to-End Framework for Production-Ready LLM Systems](https://medium.com/decodingml/an-end-to-end-framework-for-production-ready-llm-systems-by-building-your-llm-twin-2cc6bb01141f) | System Design      | Learn the overall architecture and design principles of production LLM systems.     | No code                             |
+| 2      | [Data Crawling](https://medium.com/decodingml/your-content-is-gold-i-turned-3-years-of-blog-posts-into-an-llm-training-d19c265bdd6e)                                                      | Data Engineering   | Learn to crawl and process social media content for LLM training.                   | `src/data_crawling`                 |
+| 3      | [CDC Magic](https://medium.com/decodingml/i-replaced-1000-lines-of-polling-code-with-50-lines-of-cdc-magic-4d31abd3bc3b)                                                                  | Data Engineering   | Learn to implement Change Data Capture (CDC) for syncing two data sources.          | `src/data_cdc`                      |
+| 4      | [Feature Streaming Pipelines](https://medium.com/decodingml/sota-python-streaming-pipelines-for-fine-tuning-llms-and-rag-in-real-time-82eb07795b87)                                       | Feature Pipeline   | Build real-time streaming pipelines for LLM and RAG data processing.                | `src/feature_pipeline`              |
+| 5      | [Advanced RAG Algorithms](https://medium.com/decodingml/the-4-advanced-rag-algorithms-you-must-know-to-implement-5d0c7f1199d2)                                                            | Feature Pipeline   | Implement advanced RAG techniques for better retrieval.                             | `src/feature_pipeline`              |
+| 8      | [LLM & RAG Evaluation](https://medium.com/decodingml/the-engineers-framework-for-llm-rag-evaluation-59897381c326)                                                                         | Evaluation         | Learn to evaluate LLM and RAG system performance using metrics and tools like Opik. | `src/inference_pipeline/evaluation` |
+| 9      | [Implement and Deploy the RAG Inference Pipeline](https://medium.com/decodingml/beyond-proof-of-concept-building-rag-systems-that-scale-e537d0eb063a)                                     | Inference Pipeline | Design, implement and deploy the RAG inference pipeline as a FastAPI service.       | `src/inference_pipeline`            |
+| 10     | [Prompt Monitoring](https://medium.com/decodingml/the-ultimate-prompt-monitoring-pipeline-886cbb75ae25)                                                                                   | Inference Pipeline | Build the prompt monitoring and production evaluation pipeline.                     | `src/inference_pipeline`            |
+| 11     | [Refactor the RAG module using 74.3% Less Code ](https://medium.com/decodingml/build-a-scalable-rag-ingestion-pipeline-using-74-3-less-code-ac50095100d6)                                 | Bonus on RAG       | Optimize the RAG system.                                                            | `src/bonus_superlinked_rag`         |
+| 12     | [Multi-Index RAG Apps](https://medium.com/decodingml/build-multi-index-advanced-rag-apps-bd33d2f0ec5c)                                                                                    | Bonus on RAG       | Build advanced multi-index RAG apps.                                                | `src/bonus_superlinked_rag`         |
 
-----
+---
 
 <table style="border-collapse: collapse; border: none;">
   <tr style="border: none;">
@@ -197,14 +188,12 @@ llm-twin-course/
 │ ├── data_crawling/         # Data collection pipeline code
 │ ├── data_cdc/              # Change Data Capture (CDC) pipeline code
 │ ├── feature_pipeline/      # Feature engineering pipeline code
-│ ├── training_pipeline/     # Training pipeline code
 │ ├── inference_pipeline/    # Inference service code
 │ └── bonus_superlinked_rag/ # Bonus RAG optimization code
 ├── .env.example             # Example environment variables template
 ├── Makefile                 # Commands to build and run the project
 ├── pyproject.toml           # Project dependencies
 ```
-
 
 ## 🚀 Install & Usage
 
@@ -213,16 +202,15 @@ To understand how to **install and run the LLM Twin code end-to-end**, go to the
 > [!NOTE]
 > Even though you can run everything solely using the [INSTALL_AND_USAGE](https://github.com/decodingml/llm-twin-course/blob/main/INSTALL_AND_USAGE.md) dedicated document, we recommend that you read the articles to understand the LLM Twin system and design choices fully.
 
-
 ## 💡 Questions and troubleshooting
 
 Have questions or running into issues? We're here to help!
 
 Open a [GitHub issue](https://github.com/decodingml/llm-twin-course/issues) for:
+
 - Questions about the course material
 - Technical troubleshooting
 - Clarification on concepts
-
 
 ## 🥂 Contributing
 
@@ -231,7 +219,6 @@ As an open-source course, we may not be able to fix all the bugs that arise.
 If you find any bugs and know how to fix them, support future readers by contributing to this course with your bug fix.
 
 We will deeply appreciate your support for the AI community and future readers 🤗
-
 
 ## Contributors
 
@@ -245,7 +232,7 @@ A big "Thank you 🙏" to all our contributors! This course is possible only bec
 
 ## Sponsors
 
-Also, another big "Thank you 🙏" to all our sponsors who supported our work and made this course possible. 
+Also, another big "Thank you 🙏" to all our sponsors who supported our work and made this course possible.
 
 <table>
   <tr>
@@ -304,8 +291,8 @@ Perfect for practitioners who want **both theory** and **hands-on** expertise by
 
 **[Buy the LLM Engineer’s Handbook](https://www.amazon.com/LLM-Engineers-Handbook-engineering-production/dp/1836200072/)**
 
-* [On Amazon](https://www.amazon.com/LLM-Engineers-Handbook-engineering-production/dp/1836200072/)
-* [On Packt](https://www.packtpub.com/en-us/product/llm-engineers-handbook-9781836200062)
+- [On Amazon](https://www.amazon.com/LLM-Engineers-Handbook-engineering-production/dp/1836200072/)
+- [On Packt](https://www.packtpub.com/en-us/product/llm-engineers-handbook-9781836200062)
 
 <p align="center">
   <a href="https://www.amazon.com/LLM-Engineers-Handbook-engineering-production/dp/1836200072/">
@@ -317,7 +304,7 @@ Perfect for practitioners who want **both theory** and **hands-on** expertise by
 
 This course is an open-source project released under the MIT license. Thus, as long you distribute our LICENSE and acknowledge our work, you can safely clone or fork this project and use it as a source of inspiration for whatever you want (e.g., university projects, college degree projects, personal projects, etc.).
 
-----
+---
 
 <table style="border-collapse: collapse; border: none;">
   <tr style="border: none;">

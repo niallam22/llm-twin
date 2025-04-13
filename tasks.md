@@ -753,65 +753,65 @@ Story 8: Remove Training Pipeline and Associated Components
 Goal: Eliminate all code, configuration, dependencies, evaluation artifacts, and documentation related to fine-tuning the local model.
 
 8.1: Delete Training Source Code
-[ ] Task 8.1.1: Delete the entire directory src/training_pipeline/.
+[x] Task 8.1.1: Delete the entire directory src/training_pipeline/.
 AC: The directory src/training_pipeline/ no longer exists.
 
-[ ] Task 8.1.2: Delete the entire directory src/feature_pipeline/generate_dataset/.
+[x] Task 8.1.2: Delete the entire directory src/feature_pipeline/generate_dataset/.
 AC: The directory src/feature_pipeline/generate_dataset/ no longer exists.
 
-[ ] Task 8.1.3: Delete the file src/core/aws/create_sagemaker_role.py.
+[x] Task 8.1.3: Delete the file src/core/aws/create_sagemaker_role.py.
 AC: The file src/core/aws/create_sagemaker_role.py no longer exists.
 
-[ ] Task 8.1.4: Delete the directory src/inference_pipeline/aws/ if it exists and contains SageMaker deployment/deletion scripts for the fine-tuned model.
+[x] Task 8.1.4: Delete the directory src/inference_pipeline/aws/ if it exists and contains SageMaker deployment/deletion scripts for the fine-tuned model.
 AC: The directory src/inference_pipeline/aws/ and its contents (if any) are removed.
 
-[ ] Task 8.1.5: Search the entire src/ directory for any remaining imports from src.training_pipeline, src.feature_pipeline.generate_dataset, or src.core.aws.create_sagemaker_role and remove them. Check files like src/core/**init**.py, src/feature_pipeline/main.py, etc.
+[x] Task 8.1.5: Search the entire src/ directory for any remaining imports from src.training_pipeline, src.feature_pipeline.generate_dataset, or src.core.aws.create_sagemaker_role and remove them. Check files like src/core/**init**.py, src/feature_pipeline/main.py, etc.
 AC: No dangling imports from deleted training modules remain in the codebase.
 
 8.2: Clean Configuration
-[ ] Task 8.2.1: In src/core/config.py (AppSettings), remove the DATASET_ID variable (related to Comet artifact for training).
+[x] Task 8.2.1: In src/core/config.py (AppSettings), remove the DATASET_ID variable (related to Comet artifact for training).
 AC: DATASET_ID is removed from AppSettings.
 
-[ ] Task 8.2.2: In src/core/config.py (AppSettings), remove the AWS_ARN_ROLE variable if its sole purpose was SageMaker training/deployment. If used for other AWS services, keep it.
+[x] Task 8.2.2: In src/core/config.py (AppSettings), remove the AWS_ARN_ROLE variable if its sole purpose was SageMaker training/deployment. If used for other AWS services, keep it.
 AC: AWS_ARN_ROLE is removed from AppSettings if it was only for SageMaker training/deployment.
 
-[ ] Task 8.2.3: In .env.example, remove the lines for DATASET_ID and potentially AWS_ARN_ROLE (matching the changes in AppSettings).
+[x] Task 8.2.3: In .env.example, remove the lines for DATASET_ID and potentially AWS_ARN_ROLE (matching the changes in AppSettings).
 AC: .env.example is cleaned of training-specific variables.
 
-[ ] Task 8.2.4: Delete the file sagemaker_execution_role.json from the project root if it exists. Add sagemaker_execution_role.json to .gitignore.
+[x] Task 8.2.4: Delete the file sagemaker_execution_role.json from the project root if it exists. Add sagemaker_execution_role.json to .gitignore.
 AC: The generated SageMaker role file is deleted and ignored.
 
 8.3: Remove Training Dependencies
-[ ] Task 8.3.1: In pyproject.toml, under [tool.poetry.dependencies], remove datasets (if only used for loading training data), peft, trl, bitsandbytes. Remove unsloth if it was used specifically for fine-tuning support.
+[x] Task 8.3.1: In pyproject.toml, under [tool.poetry.dependencies], remove datasets (if only used for loading training data), peft, trl, bitsandbytes. Remove unsloth if it was used specifically for fine-tuning support.
 AC: Training-specific dependencies are removed from pyproject.toml.
 
-[ ] Task 8.3.2: In pyproject.toml, check if flash-attn was added for training; if so, remove it.
+[x] Task 8.3.2: In pyproject.toml, check if flash-attn was added for training; if so, remove it.
 AC: flash-attn dependency is removed if it was only for training.
 
-[ ] Task 8.3.3: Run poetry lock --no-update in the terminal.
+[x] Task 8.3.3: Run poetry lock --no-update in the terminal.
 AC: Poetry lock file is updated to reflect removed dependencies.
 
-[ ] Task 8.3.4: Run make install or poetry install in the terminal.
+[x] Task 8.3.4: Run make install or poetry install in the terminal.
 AC: Training dependencies are removed from the virtual environment.
 
 8.4: Clean Makefile
-[ ] Task 8.4.1: In Makefile, delete the targets: start-training-pipeline-dummy-mode, start-training-pipeline, local-start-training-pipeline.
+[x] Task 8.4.1: In Makefile, delete the targets: start-training-pipeline-dummy-mode, start-training-pipeline, local-start-training-pipeline.
 AC: Makefile targets for starting training are removed.
 
-[ ] Task 8.4.2: In Makefile, delete the target: download-instruct-dataset.
+[x] Task 8.4.2: In Makefile, delete the target: download-instruct-dataset.
 AC: Makefile target for downloading the instruct dataset is removed.
 
-[ ] Task 8.4.3: In Makefile, delete the target: create-sagemaker-execution-role.
+[x] Task 8.4.3: In Makefile, delete the target: create-sagemaker-execution-role.
 AC: Makefile target for creating the SageMaker role is removed.
 
-[ ] Task 8.4.4: In Makefile, delete the target: local-generate-instruct-dataset.
+[x] Task 8.4.4: In Makefile, delete the target: local-generate-instruct-dataset.
 AC: Makefile target for generating the instruct dataset is removed.
 
-[ ] Task 8.4.5: If deploy-inference-pipeline and delete-inference-pipeline-deployment targets existed specifically for deploying the fine-tuned model via SageMaker (as opposed to a generic API deployment), delete them. (Based on previous refactoring, these might already be gone or repurposed).
+[x] Task 8.4.5: If deploy-inference-pipeline and delete-inference-pipeline-deployment targets existed specifically for deploying the fine-tuned model via SageMaker (as opposed to a generic API deployment), delete them. (Based on previous refactoring, these might already be gone or repurposed).
 AC: Obsolete SageMaker deployment targets for the fine-tuned model are removed from Makefile.
 
 8.5: Adapt Evaluation Scripts
-[ ] Task 8.5.1: In src/inference_pipeline/evaluation/evaluate.py (main function):
+[x] Task 8.5.1: In src/inference_pipeline/evaluation/evaluate.py (main function):
 
 - Remove the call to create_dataset_from_artifacts. Evaluation should perhaps run on a standard benchmark dataset or a curated set of prompts not tied to the old training artifacts.
 - Define a new static list of evaluation prompts/inputs, or load from a simple file/benchmark dataset.
@@ -820,7 +820,7 @@ AC: Obsolete SageMaker deployment targets for the fine-tuned model are removed f
 - Update experiment_config to reflect the external model ID (e.g., settings.OPENAI_MODEL_ID).
   AC: evaluate.py is adapted to use the external LLM, a suitable evaluation dataset (not training artifacts), and relevant metrics.
 
-[ ] Task 8.5.2: In src/inference_pipeline/evaluation/evaluate_rag.py (main function):
+[x] Task 8.5.2: In src/inference_pipeline/evaluation/evaluate_rag.py (main function):
 
 - Remove the call to create_dataset_from_artifacts. Use the same new evaluation data source as in evaluate.py.
 - Update the evaluation_task function: It needs to perform RAG retrieval (instantiate VectorRetriever, call retrieve_top_k, rerank) and then call the external LLM API/client with the query and retrieved context. Ensure enable_rag=True equivalent logic is applied.
@@ -828,21 +828,21 @@ AC: Obsolete SageMaker deployment targets for the fine-tuned model are removed f
 - Update experiment_config.
   AC: evaluate_rag.py is adapted to use the external LLM with RAG, a suitable evaluation dataset, and relevant metrics.
 
-[ ] Task 8.5.3: In src/inference_pipeline/evaluation/evaluate_monitoring.py:
+[x] Task 8.5.3: In src/inference_pipeline/evaluation/evaluate_monitoring.py:
 
 - Verify the evaluation_task correctly extracts query, context, and output from the format logged by Opik for the new API calls. Adjust parsing if needed.
 - Ensure metrics (Hallucination, Moderation, AnswerRelevance, Style) are appropriate for evaluating production logs from the external LLM.
 - Update experiment_config.
   AC: evaluate_monitoring.py correctly processes logs from the new inference setup and uses relevant metrics.
 
-[ ] Task 8.5.4: Review src/core/opik_utils.py:
+[x] Task 8.5.4: Review src/core/opik_utils.py:
 
 - Remove the create_dataset_from_artifacts function as it relies on training artifacts.
 - Check if add_to_dataset_with_sampling is still needed for monitoring dataset creation; if so, ensure the dataset_name used matches the one expected by evaluate_monitoring.py.
   AC: opik_utils.py is cleaned of functions dependent on training artifacts.
 
   8.6: Update Documentation
-  [ ] Task 8.6.1: In README.md:
+  [x] Task 8.6.1: In README.md:
 
 - Remove the "Training Pipeline" section/component from the architecture diagram and description.
 - In the "Lessons" table, remove or mark as deprecated/removed the lessons specifically about generating instruct datasets and the fine-tuning pipeline (Lessons 6, 7). Update descriptions of related lessons (like Evaluation, Inference) if needed.
@@ -850,7 +850,7 @@ AC: Obsolete SageMaker deployment targets for the fine-tuned model are removed f
 - Search for and remove any mentions of fine-tuning, LoRA, QLoRA, instruct datasets, SageMaker training jobs.
   AC: README.md accurately reflects the removal of the training pipeline in architecture, lessons, and structure sections.
 
-[ ] Task 8.6.2: In INSTALL_AND_USAGE.md:
+[x] Task 8.6.2: In INSTALL_AND_USAGE.md:
 
 - Remove the section "Step 5: Generating the instruct dataset".
 - Remove the section "Step 6: Setting up AWS SageMaker" entirely, including creating the execution role.

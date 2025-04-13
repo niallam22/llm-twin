@@ -1,10 +1,11 @@
 import argparse
 
 import opik
-from config import settings
-from core.logger_utils import get_logger
 from opik.evaluation import evaluate
 from opik.evaluation.metrics import AnswerRelevance, Hallucination, Moderation
+
+from core.config import settings
+from core.logger_utils import get_logger
 
 from .style import Style
 
@@ -42,7 +43,7 @@ def main() -> None:
         exit(1)
 
     experiment_config = {
-        "model_id": settings.MODEL_ID,
+        "model_id": settings.OPENAI_MODEL_ID,  # Use the correct model ID
     }
 
     scoring_metrics = [Hallucination(), Moderation(), AnswerRelevance(), Style()]

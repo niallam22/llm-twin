@@ -40,7 +40,6 @@ class AppSettings(BaseSettings):
     AWS_REGION: str = "eu-central-1"
     AWS_ACCESS_KEY: str | None = None
     AWS_SECRET_KEY: str | None = None
-    AWS_ARN_ROLE: str | None = None
 
     # LLM Model config
     HF_TOKEN: str | None = None  # Renamed from HUGGINGFACE_ACCESS_TOKEN
