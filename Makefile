@@ -79,14 +79,12 @@ start-training-pipeline: # Start the training pipeline in AWS SageMaker.
 local-start-training-pipeline: # Start the training pipeline in your Poetry env.
 	cd src/training_pipeline && poetry run python -m finetune
 
-deploy-inference-pipeline: # Deploy the inference pipeline to AWS SageMaker.
-	cd src/inference_pipeline && poetry run python -m aws.deploy_sagemaker_endpoint
 
-call-inference-pipeline: # Call the inference pipeline client using your Poetry env.
-	cd src/inference_pipeline && poetry run python -m main
+call-inference-pipeline: # Call the local FastAPI inference endpoint.
+	curl -X POST "http://localhost:8000/generate" \
+		-H "Content-Type: application/json" \
+		-d '{"query": "What is RAG?", "use_rag": true}'
 
-delete-inference-pipeline-deployment: # Delete the deployment of the AWS SageMaker inference pipeline.
-	cd src/inference_pipeline && PYTHONPATH=$(PYTHONPATH) poetry run python -m aws.delete_sagemaker_endpoint
 
 local-start-ui: # Start the Gradio UI for chatting with your LLM Twin using your Poetry env.
 	cd src/inference_pipeline && poetry run python -m ui

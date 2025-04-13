@@ -55,7 +55,7 @@ asyncpg = "^0.29.0"
 transformers = "^4.43.3" # Added for local inference pipeline
 torch = "^2.4.0" # Added dependency for transformers
 accelerate = "^0.33.0" # Added for device_map='auto' support
-
+requests = "^2.31.0" # Added for UI to call API endpoint
 [tool.poetry.group.feature_pipeline.dependencies]
 bytewax = "0.18.2"
 

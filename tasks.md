@@ -553,23 +553,23 @@ AC: A strategy for handling model weights within the Docker container is chosen 
 
 ### Story 6C: Refactor Inference Pipeline to FastAPI Endpoint - UI Integration
 
-[ ] Task 6.8.1: Remove the deploy-inference-pipeline command from the Makefile.
+[x] Task 6.8.1: Remove the deploy-inference-pipeline command from the Makefile.
 
 AC: The deploy-inference-pipeline Make target is removed.
 
-[ ] Task 6.8.2: Remove the delete-inference-pipeline-deployment command from the Makefile.
+[x] Task 6.8.2: Remove the delete-inference-pipeline-deployment command from the Makefile.
 
 AC: The delete-inference-pipeline-deployment Make target is removed.
 
-[ ] Task 6.8.3: Modify the call-inference-pipeline command in the Makefile to use curl to send a POST request to http://localhost:8000/generate with a sample InferenceRequest JSON payload.
+[x] Task 6.8.3: Modify the call-inference-pipeline command in the Makefile to use curl to send a POST request to http://localhost:8000/generate with a sample InferenceRequest JSON payload.
 
 AC: The make call-inference-pipeline command successfully calls the new FastAPI inference endpoint.
 
-[ ] Task 6.8.4: Refactor the Gradio UI script (src/inference_pipeline/ui.py). Update the function that handles user input and generates the response. Instead of calling LLMTwin().generate() directly or using boto3 to call SageMaker, it should now use a library like requests or httpx to make a POST request to the FastAPI /generate endpoint (http://api:80/generate if running via Docker Compose, or http://localhost:8000/generate if run locally). Parse the JSON response to display the answer.
+[x] Task 6.8.4: Refactor the Gradio UI script (src/inference_pipeline/ui.py). Update the function that handles user input and generates the response. Instead of calling LLMTwin().generate() directly or using boto3 to call SageMaker, it should now use a library like requests or httpx to make a POST request to the FastAPI /generate endpoint (http://api:80/generate if running via Docker Compose, or http://localhost:8000/generate if run locally). Parse the JSON response to display the answer.
 
 AC: Running make local-start-ui launches the Gradio UI, and interacting with it successfully calls the FastAPI /generate backend endpoint to get responses.
 
-[ ] Task 6.8.5: Review evaluation scripts (evaluate-llm, evaluate-rag, etc.). If they relied on the SageMaker endpoint, update them to either: a) Instantiate the LLMTwin logic directly (if feasible), or b) Call the FastAPI /generate endpoint.
+[x] Task 6.8.5: Review evaluation scripts (evaluate-llm, evaluate-rag, etc.). If they relied on the SageMaker endpoint, update them to either: a) Instantiate the LLMTwin logic directly (if feasible), or b) Call the FastAPI /generate endpoint. (No changes needed as scripts already used local LLMTwin or evaluated logged data).
 
 AC: Evaluation scripts are updated to work with the refactored local/FastAPI inference setup.
 
