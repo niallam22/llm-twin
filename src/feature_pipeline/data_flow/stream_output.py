@@ -1,8 +1,9 @@
 from bytewax.outputs import DynamicSink, StatelessSinkPartition
-from core import get_logger
-from core.db.qdrant import QdrantDatabaseConnector
 from models.base import VectorDBDataModel
 from qdrant_client.models import Batch
+
+from src.core import get_logger
+from src.core.db.qdrant import QdrantDatabaseConnector
 
 logger = get_logger(__name__)
 
@@ -36,13 +37,9 @@ class QdrantOutput(DynamicSink):
                 )
 
                 if is_vector:
-                    self._connection.create_vector_collection(
-                        collection_name=collection_name
-                    )
+                    self._connection.create_vector_collection(collection_name=collection_name)
                 else:
-                    self._connection.create_non_vector_collection(
-                        collection_name=collection_name
-                    )
+                    self._connection.create_non_vector_collection(collection_name=collection_name)
 
     def build(self, worker_index: int, worker_count: int) -> StatelessSinkPartition:
         if self._sink_type == "clean":

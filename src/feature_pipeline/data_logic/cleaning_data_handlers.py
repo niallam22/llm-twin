@@ -19,9 +19,7 @@ class CleaningDataHandler(ABC):
 
 class PostCleaningHandler(CleaningDataHandler):
     def clean(self, data_model: PostsRawModel) -> PostCleanedModel:
-        joined_text = (
-            "".join(data_model.content.values()) if data_model and data_model.content else None
-        )
+        joined_text = "".join(data_model.content.values()) if data_model and data_model.content else None
 
         return PostCleanedModel(
             entry_id=data_model.entry_id,
@@ -35,15 +33,15 @@ class PostCleaningHandler(CleaningDataHandler):
 
 class ArticleCleaningHandler(CleaningDataHandler):
     def clean(self, data_model: ArticleRawModel) -> ArticleCleanedModel:
-        joined_text = (
-            "".join(data_model.content.values()) if data_model and data_model.content else None
-        )
+        # joined_text = (
+        #     "".join(data_model.content.values()) if data_model and data_model.content else None
+        # )
 
         return ArticleCleanedModel(
             entry_id=data_model.entry_id,
             platform=data_model.platform,
-            link=data_model.link,
-            cleaned_content=clean_text(joined_text),
+            link=data_model.url,
+            cleaned_content=data_model.content,  # clean_text(joined_text),
             author_id=data_model.author_id,
             type=data_model.type,
         )
@@ -51,9 +49,7 @@ class ArticleCleaningHandler(CleaningDataHandler):
 
 class RepositoryCleaningHandler(CleaningDataHandler):
     def clean(self, data_model: RepositoryRawModel) -> RepositoryCleanedModel:
-        joined_text = (
-            "".join(data_model.content.values()) if data_model and data_model.content else None
-        )
+        joined_text = "".join(data_model.content.values()) if data_model and data_model.content else None
 
         return RepositoryCleanedModel(
             entry_id=data_model.entry_id,

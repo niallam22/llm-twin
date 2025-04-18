@@ -1,4 +1,3 @@
-from core import get_logger
 from models.base import DataModel
 from models.raw import ArticleRawModel, PostsRawModel, RepositoryRawModel
 
@@ -17,9 +16,10 @@ from data_logic.cleaning_data_handlers import (
 from data_logic.embedding_data_handlers import (
     ArticleEmbeddingHandler,
     EmbeddingDataHandler,
-    PostEmbeddingHandler,
-    RepositoryEmbeddingHandler,
+    # PostEmbeddingHandler,
+    # RepositoryEmbeddingHandler,
 )
+from src.core import get_logger
 
 logger = get_logger(__name__)
 
@@ -35,33 +35,18 @@ class RawDispatcher:
             logger.error("Invalid CDC message format received.", message=message)
             raise ValueError("Invalid CDC message format: missing 'table', 'operation', or 'data'")
 
-        logger.info("Received CDC message.", table=table, operation=operation)
-
+        entry_id = data.get("id")  # TODO: update db to use entry_id instead of id
         model_instance: DataModel
         if table == "posts":
-            model_instance = PostsRawModel(**data)
-            model_instance.type = "posts"
+            model_instance = PostsRawModel(**data, type=table, entry_id=entry_id)
         elif table == "articles":
-            model_instance = ArticleRawModel(**data)
-            model_instance.type = "articles"
+            model_instance = ArticleRawModel(**data, type=table, entry_id=entry_id)
         elif table == "repositories":
-            model_instance = RepositoryRawModel(**data)
-            model_instance.type = "repositories"
+            model_instance = RepositoryRawModel(**data, type=table, entry_id=entry_id)
         else:
             logger.warning("Unsupported table type received.", table=table)
             raise ValueError(f"Unsupported table type: {table}")
-
-        # Assign table and operation from the envelope
-        model_instance.table = table
-        model_instance.operation = operation
-
-        # Ensure entry_id is populated (assuming it's in the 'data' dict)
-        if 'id' in data: # Common primary key name
-             model_instance.entry_id = data['id']
-        elif 'entry_id' not in data: # Check if already set by model init
-             logger.warning("Could not determine entry_id from data.", data=data)
-             # Handle cases where ID might be missing or named differently if necessary
-
+        logger.info(f"success model {model_instance}", table=table, operation=operation, type=table)
         return model_instance
 
 
@@ -79,7 +64,7 @@ class CleaningHandlerFactory:
 
 
 class CleaningDispatcher:
-    cleaning_factory = CleaningHandlerFactory()
+    cleaning_factory = CleaningHandlerFactory
 
     @classmethod
     def dispatch_cleaner(cls, data_model: DataModel) -> DataModel:
@@ -110,12 +95,12 @@ class ChunkingHandlerFactory:
 
 
 class ChunkingDispatcher:
-    cleaning_factory = ChunkingHandlerFactory
+    chunking_factory = ChunkingHandlerFactory
 
     @classmethod
     def dispatch_chunker(cls, data_model: DataModel) -> list[DataModel]:
         data_type = data_model.type
-        handler = cls.cleaning_factory.create_handler(data_type)
+        handler = cls.chunking_factory.create_handler(data_type)
         chunk_models = handler.chunk(data_model)
 
         logger.info(
@@ -130,23 +115,23 @@ class ChunkingDispatcher:
 class EmbeddingHandlerFactory:
     @staticmethod
     def create_handler(data_type) -> EmbeddingDataHandler:
-        if data_type == "posts":
-            return PostEmbeddingHandler()
-        elif data_type == "articles":
+        # if data_type == "posts":
+        #     return PostEmbeddingHandler()
+        if data_type == "articles":
             return ArticleEmbeddingHandler()
-        elif data_type == "repositories":
-            return RepositoryEmbeddingHandler()
+        # elif data_type == "repositories":
+        #     return RepositoryEmbeddingHandler()
         else:
             raise ValueError("Unsupported data type")
 
 
 class EmbeddingDispatcher:
-    cleaning_factory = EmbeddingHandlerFactory
+    embedding_factory = EmbeddingHandlerFactory
 
     @classmethod
     def dispatch_embedder(cls, data_model: DataModel) -> DataModel:
         data_type = data_model.type
-        handler = cls.cleaning_factory.create_handler(data_type)
+        handler = cls.embedding_factory.create_handler(data_type)
         embedded_chunk_model = handler.embedd(data_model)
 
         logger.info(
