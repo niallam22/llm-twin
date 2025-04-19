@@ -1,10 +1,11 @@
 import json
 from typing import Any
 
-from config import settings
 from opik.evaluation.metrics import base_metric, exceptions, score_result
 from opik.evaluation.models import litellm_chat_model
 from pydantic import BaseModel
+
+from src.core.config import settings
 
 
 class LLMJudgeStyleOutputResult(BaseModel):
@@ -20,9 +21,7 @@ class Style(base_metric.BaseMetric):
     It returns a score of 1.0 if the style is appropriate, 0.5 if it is somewhere in the middle and 0.0 otherwise.
     """
 
-    def __init__(
-        self, name: str = "style_metric", model_name: str = settings.OPENAI_MODEL_ID
-    ) -> None:
+    def __init__(self, name: str = "style_metric", model_name: str = settings.OPENAI_MODEL_ID) -> None:
         self.name = name
         self.llm_client = litellm_chat_model.LiteLLMChatModel(model_name=model_name)
         self.prompt_template = """
@@ -65,9 +64,7 @@ Provide your evaluation in JSON format with the following structure:
 
         prompt = self.prompt_template.format(input=input, output=output)
 
-        model_output = self.llm_client.generate_string(
-            input=prompt, response_format=LLMJudgeStyleOutputResult
-        )
+        model_output = self.llm_client.generate_string(input=prompt, response_format=LLMJudgeStyleOutputResult)
 
         return self._parse_model_output(model_output)
 

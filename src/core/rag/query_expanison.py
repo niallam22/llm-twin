@@ -1,9 +1,9 @@
 import opik
-from config import settings
 from langchain_openai import ChatOpenAI
 from opik.integrations.langchain import OpikTracer
 
-from core.rag.prompt_templates import QueryExpansionTemplate
+from src.core.config import settings
+from src.core.rag.prompt_templates import QueryExpansionTemplate
 
 
 class QueryExpansion:
@@ -26,8 +26,6 @@ class QueryExpansion:
         response = response.content
 
         queries = response.strip().split(query_expansion_template.separator)
-        stripped_queries = [
-            stripped_item for item in queries if (stripped_item := item.strip(" \\n"))
-        ]
+        stripped_queries = [stripped_item for item in queries if (stripped_item := item.strip(" \\n"))]
 
         return stripped_queries

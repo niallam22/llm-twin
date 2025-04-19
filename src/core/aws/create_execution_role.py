@@ -1,18 +1,16 @@
 import json
 from pathlib import Path
 
-from core.logger_utils import get_logger
+from src.core.logger_utils import get_logger
 
 logger = get_logger(__file__)
 
 try:
     import boto3
 except ModuleNotFoundError:
-    logger.warning(
-        "Couldn't load AWS or SageMaker imports. Run 'poetry install --with aws' to support AWS."
-    )
+    logger.warning("Couldn't load AWS or SageMaker imports. Run 'poetry install --with aws' to support AWS.")
 
-from core.config import settings
+from src.core.config import settings
 
 
 def create_sagemaker_execution_role(role_name: str):

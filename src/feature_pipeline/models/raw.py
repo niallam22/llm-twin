@@ -1,6 +1,9 @@
 from typing import Optional
 
 from models.base import DataModel
+from src.core import get_logger
+
+logger = get_logger(__name__)
 
 
 class RepositoryRawModel(DataModel):
@@ -12,8 +15,8 @@ class RepositoryRawModel(DataModel):
 
 class ArticleRawModel(DataModel):
     platform: str
-    link: str
-    content: dict
+    url: str
+    content: str
     author_id: str
 
 

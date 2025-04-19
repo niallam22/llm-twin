@@ -11,6 +11,7 @@ from openai import OpenAI
 
 from src.core import get_logger
 from src.feature_pipeline.config import settings
+from src.feature_pipeline.utils.embeddings import embedd_text
 
 logger = get_logger(__name__)
 
@@ -50,7 +51,7 @@ class ArticleEmbeddingHandler(EmbeddingDataHandler):
             # Extract the list of floats
             embedding_list: List[float] = response.data[0].embedding
             # Convert to NumPy array
-            embedding_array: np.ndarray = np.array(embedding_list)
+            embedding_array: np.ndarray = embedd_text(data_model.chunk_content)
 
         except Exception as e:
             logger.error(f"Failed embedding article chunk {data_model.chunk_id}: {e}", exc_info=True)

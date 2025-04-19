@@ -12,10 +12,10 @@ import asyncio  # Import asyncio
 from llm_twin import LLMTwin
 
 # from transformers import pipeline, AutoTokenizer # Removed imports
-from core import logger_utils
+from src.core import logger_utils
 
 # Import settings from the core config now
-from core.llm_clients import OpenAIClient  # Import OpenAIClient
+from src.core.llm_clients import OpenAIClient  # Import OpenAIClient
 
 # Note: patch_localhost() might not be needed if inference_settings already point to localhost
 # settings.patch_localhost() # Commented out - check inference_settings defaults

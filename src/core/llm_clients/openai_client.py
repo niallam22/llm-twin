@@ -11,8 +11,8 @@ from openai.types.chat import (
     ChatCompletionUserMessageParam,
 )
 
-from ..config import settings
-from .base import LLMClientInterface
+from src.core.config import settings
+from src.core.llm_clients.base import LLMClientInterface
 
 logger = logging.getLogger(__name__)
 

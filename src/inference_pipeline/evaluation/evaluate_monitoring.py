@@ -4,8 +4,8 @@ import opik
 from opik.evaluation import evaluate
 from opik.evaluation.metrics import AnswerRelevance, Hallucination, Moderation
 
-from core.config import settings
-from core.logger_utils import get_logger
+from src.core.config import settings
+from src.core.logger_utils import get_logger
 
 from .style import Style
 

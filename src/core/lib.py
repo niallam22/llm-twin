@@ -1,4 +1,4 @@
-from core.errors import ImproperlyConfigured
+from src.core.errors import ImproperlyConfigured
 
 
 def split_user_full_name(user: str | None) -> tuple[str, str]:

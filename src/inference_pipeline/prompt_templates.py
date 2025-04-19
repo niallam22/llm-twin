@@ -1,5 +1,6 @@
-from core.rag.prompt_templates import BasePromptTemplate
 from langchain.prompts import PromptTemplate
+
+from src.core.rag.prompt_templates import BasePromptTemplate
 
 
 class InferenceTemplate(BasePromptTemplate):
@@ -36,6 +37,4 @@ class InferenceTemplate(BasePromptTemplate):
                 input_variables=["question", "context"],
             )
 
-        return self.simple_system_prompt, PromptTemplate(
-            template=self.simple_prompt_template, input_variables=["question"]
-        )
+        return self.simple_system_prompt, PromptTemplate(template=self.simple_prompt_template, input_variables=["question"])

@@ -3,9 +3,9 @@ from typing import Any, Dict
 
 from llm_twin import LLMTwin
 
-from core.config import settings
-from core.llm_clients import OpenAIClient
-from core.logger_utils import get_logger
+from src.core.config import settings
+from src.core.llm_clients import OpenAIClient
+from src.core.logger_utils import get_logger
 
 # Reuse the static dataset definition (or define a specific one for RAG)
 # For simplicity, let's assume EVALUATION_DATASET is defined similarly or imported

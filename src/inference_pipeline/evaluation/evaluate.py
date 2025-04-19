@@ -1,8 +1,8 @@
 import asyncio
 from typing import Any, Dict
 
-from core.llm_clients import OpenAIClient
-from core.logger_utils import get_logger
+from src.core.llm_clients import OpenAIClient
+from src.core.logger_utils import get_logger
 
 logger = get_logger(__name__)
 

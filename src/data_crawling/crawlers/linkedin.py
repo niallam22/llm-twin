@@ -4,12 +4,13 @@ from typing import Dict, List, Optional
 from aws_lambda_powertools import Logger
 from bs4 import BeautifulSoup
 from bs4.element import Tag
-from config import settings # Keep for login method for now
-from core.db.documents import PostDocument, UserDocument
-from core.errors import ImproperlyConfigured # Keep for login method for now
 from selenium.webdriver.common.by import By
 
-from crawlers.base import BaseAbstractCrawler
+from src.core.db.documents import PostDocument, UserDocument
+from src.core.errors import ImproperlyConfigured  # Keep for login method for now
+
+from ..config import settings  # Keep for login method for now
+from .base import BaseAbstractCrawler
 
 logger = Logger(service="llm-twin-course/crawler")
 
@@ -63,8 +64,10 @@ class LinkedInCrawler(BaseAbstractCrawler):
 
         # Get or create the author UserDocument
         # Assuming user_info might contain username or use link as identifier
-        username = user_info.get("username", f"linkedin_user_{link.split('/')[-2]}") if user_info else f"linkedin_user_{link.split('/')[-2]}"
-        platform_id = user_info.get("platform_id", link) if user_info else link # Use profile link as platform_id if not provided
+        username = (
+            user_info.get("username", f"linkedin_user_{link.split('/')[-2]}") if user_info else f"linkedin_user_{link.split('/')[-2]}"
+        )
+        platform_id = user_info.get("platform_id", link) if user_info else link  # Use profile link as platform_id if not provided
 
         author = await UserDocument.get_or_create(
             username=username,
@@ -77,7 +80,7 @@ class LinkedInCrawler(BaseAbstractCrawler):
         # posts is Dict[str, Dict[str, str]] from _extract_posts
         for post_key, post_data in posts.items():
             content_str = post_data.get("text", "")
-            metadata = {"post_key": post_key} # Store original key
+            metadata = {"post_key": post_key}  # Store original key
             if "image" in post_data:
                 metadata["image_url"] = post_data["image"]
 
@@ -87,7 +90,7 @@ class LinkedInCrawler(BaseAbstractCrawler):
                 platform="linkedin",
                 content=content_str,
                 author_id=author.id,
-                url=link, # Using profile link as placeholder for post URL
+                url=link,  # Using profile link as placeholder for post URL
                 metadata=metadata,
             )
             documents_to_save.append(post_doc)
@@ -119,7 +122,7 @@ class LinkedInCrawler(BaseAbstractCrawler):
             # Ensure img_tag is a Tag object before accessing attributes
             if isinstance(img_tag, Tag) and img_tag.has_attr("src"):
                 src_url = img_tag.get("src")
-                if src_url: # Check if src attribute exists and is not empty
+                if src_url:  # Check if src attribute exists and is not empty
                     post_images[f"Post_{i}"] = src_url
             else:
                 logger.warning("No image found in this button")
@@ -131,9 +134,7 @@ class LinkedInCrawler(BaseAbstractCrawler):
         time.sleep(5)
         return BeautifulSoup(self.driver.page_source, "html.parser")
 
-    def _extract_posts(
-        self, post_elements: List[Tag], post_images: Dict[str, str]
-    ) -> Dict[str, Dict[str, str]]:
+    def _extract_posts(self, post_elements: List[Tag], post_images: Dict[str, str]) -> Dict[str, Dict[str, str]]:
         """
         Extracts post texts and combines them with their respective images.
 
@@ -169,23 +170,13 @@ class LinkedInCrawler(BaseAbstractCrawler):
         return education_content.get_text(strip=True) if education_content else ""
 
     def login(self):
-        raise DeprecationWarning(
-            "LinkedIn crawler is deprecated and no longer supported."
-        )
+        raise DeprecationWarning("LinkedIn crawler is deprecated and no longer supported.")
 
         """Log in to LinkedIn."""
         self.driver.get("https://www.linkedin.com/login")
         if not settings.LINKEDIN_USERNAME and not settings.LINKEDIN_PASSWORD:
-            raise ImproperlyConfigured(
-                "LinkedIn scraper requires an valid account to perform extraction"
-            )
+            raise ImproperlyConfigured("LinkedIn scraper requires an valid account to perform extraction")
 
-        self.driver.find_element(By.ID, "username").send_keys(
-            settings.LINKEDIN_USERNAME
-        )
-        self.driver.find_element(By.ID, "password").send_keys(
-            settings.LINKEDIN_PASSWORD
-        )
-        self.driver.find_element(
-            By.CSS_SELECTOR, ".login__form_action_container button"
-        ).click()
+        self.driver.find_element(By.ID, "username").send_keys(settings.LINKEDIN_USERNAME)
+        self.driver.find_element(By.ID, "password").send_keys(settings.LINKEDIN_PASSWORD)
+        self.driver.find_element(By.CSS_SELECTOR, ".login__form_action_container button").click()

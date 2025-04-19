@@ -7,9 +7,7 @@ from pathlib import Path
 ROOT_DIR = str(Path(__file__).parent.parent.parent)
 sys.path.append(ROOT_DIR)
 
-from core import logger_utils
+from src.core import logger_utils
 
 logger = logger_utils.get_logger(__name__)
-logger.info(
-    f"Added the following directory to PYTHONPATH to simulate multiple modules: {ROOT_DIR}"
-)
+logger.info(f"Added the following directory to PYTHONPATH to simulate multiple modules: {ROOT_DIR}")

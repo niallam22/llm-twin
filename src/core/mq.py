@@ -1,10 +1,10 @@
 from typing import Self
 
 import pika
-from pika.exceptions import AMQPConnectionError, UnroutableError # Import specific exceptions
-from config import settings
+from pika.exceptions import AMQPConnectionError, UnroutableError  # Import specific exceptions
 
-from logger_utils import get_logger
+from src.core.config import settings
+from src.core.logger_utils import get_logger
 
 logger = get_logger(__file__)
 
@@ -56,7 +56,7 @@ class RabbitMQConnection:
                     credentials=credentials,
                 )
             )
-        except AMQPConnectionError as e: # Use imported exception
+        except AMQPConnectionError as e:  # Use imported exception
             logger.exception("Failed to connect to RabbitMQ:")
             if not self.fail_silently:
                 raise e
@@ -66,12 +66,12 @@ class RabbitMQConnection:
 
     def get_channel(self):
         if self.is_connected():
-            assert self._connection is not None # Added assertion
+            assert self._connection is not None  # Added assertion
             return self._connection.channel()
 
     def close(self):
         if self.is_connected():
-            assert self._connection is not None # Added assertion
+            assert self._connection is not None  # Added assertion
             self._connection.close()
             self._connection = None
             print("Closed RabbitMQ connection")
@@ -88,7 +88,7 @@ def publish_to_rabbitmq(queue_name: str, data: str):
             channel = rabbitmq_conn.get_channel()
             if channel is None:
                 logger.error("Failed to get RabbitMQ channel. Aborting publish.")
-                return # Or raise an exception
+                return  # Or raise an exception
 
             # Ensure the queue exists
             channel.queue_declare(queue=queue_name, durable=True)
@@ -102,10 +102,10 @@ def publish_to_rabbitmq(queue_name: str, data: str):
                 routing_key=queue_name,
                 body=data,
                 properties=pika.BasicProperties(
-                    delivery_mode=2,  # make message persistent
+                    delivery_mode=2,
                 ),
             )
-    except UnroutableError: # Use imported exception
+    except UnroutableError:  # Use imported exception
         logger.warning("Message could not be routed")
     except Exception:
         logger.exception("Error publishing to RabbitMQ.")

@@ -2,13 +2,13 @@ import os
 import shutil
 import subprocess
 import tempfile
-import asyncio
 from typing import Optional
 
 from aws_lambda_powertools import Logger
-from core.db.documents import RepositoryDocument, UserDocument
 
-from crawlers.base import BaseCrawler
+from src.core.db.documents import RepositoryDocument, UserDocument
+from src.core.db.supabase_client import SupabaseClient
+from src.data_crawling.crawlers.base import BaseCrawler
 
 logger = Logger(service="llm-twin-course/crawler")
 
@@ -20,7 +20,7 @@ class GithubCrawler(BaseCrawler):
         super().__init__()
         self._ignore = ignore
 
-    async def extract(self, link: str, user_info: Optional[dict] = None) -> None:
+    async def extract(self, link: str, db_client: SupabaseClient, user_info: Optional[dict] = None) -> None:
         logger.info(f"Starting scrapping GitHub repository: {link}")
 
         repo_name = link.rstrip("/").split("/")[-1]
@@ -52,20 +52,17 @@ class GithubCrawler(BaseCrawler):
             except IndexError:
                 logger.error(f"Could not extract owner username from link: {link}")
                 # Handle error appropriately, maybe raise or return
-                return # Or raise specific error
+                return  # Or raise specific error
 
             # Get or create the user document
-            user_document = await UserDocument.get_or_create(cls=UserDocument, username=owner_username)
+            user_document = await UserDocument.get_or_create(db_client=db_client, cls=UserDocument, username=owner_username)
             if not user_document:
-                 logger.error(f"Could not get or create user: {owner_username}")
-                 # Handle error appropriately
-                 return # Or raise specific error
+                logger.error(f"Could not get or create user: {owner_username}")
+                # Handle error appropriately
+                return  # Or raise specific error
 
-
-            instance = self.model(
-                name=repo_name, link=link, content=tree, owner_id=user_document.id
-            )
-            await self.save_documents([instance])
+            instance = self.model(name=repo_name, link=link, content=tree, owner_id=user_document.id)
+            await self.save_documents([instance], db_client=db_client)
 
         except Exception:
             raise

@@ -8,9 +8,9 @@ ROOT_DIR = str(Path(__file__).parent.parent)
 sys.path.append(ROOT_DIR)
 
 
-from core import get_logger
-from core.config import settings
-from core.rag.retriever import VectorRetriever
+from src.core import get_logger
+from src.core.config import settings
+from src.core.rag.retriever import VectorRetriever
 
 logger = get_logger(__name__)
 

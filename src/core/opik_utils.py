@@ -9,8 +9,8 @@ logger = get_logger(__name__)
 try:
     import opik
     from opik.configurator.configure import OpikConfigurator
-except:
-    logger.info("Could not import Opik and Comet.")
+except Exception as e:
+    logger.info(f"Could not import Opik and Comet {e}")
 
 
 def configure_opik() -> None:

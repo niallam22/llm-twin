@@ -54,11 +54,15 @@ asyncpg = "^0.29.0"
 # Removed transformers, torch, accelerate as local model is replaced
 requests = "^2.31.0" # Kept for UI to call API endpoint
 openai = "^1.0.0" # Added for OpenAI client
+python-dotenv = "^1.1.0"
 [tool.poetry.group.feature_pipeline.dependencies]
 bytewax = "0.18.2"
 
 [tool.poetry.group.superlinked_rag.dependencies]
 superlinked = "^7.2.1"
+
+
+[tool.poetry.group.dev.dependencies]
 
 [build-system]
 requires = ["poetry-core"]
