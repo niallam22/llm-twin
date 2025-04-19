@@ -76,7 +76,7 @@ Story 2: Migrate Data Storage from MongoDB to Supabase
 
 AC: The file src/core/db/supabase_client.py exists.
 
-[x] Task 2.1.2: Implement a function or class within supabase_client.py to manage a connection pool (if using asyncpg or SQLAlchemy) or initialize the client (if using supabase-py), using the SUPABASE_DB_URL from core.config. Include functions to acquire/release connections or sessions.
+[x] Task 2.1.2: Implement a function or class within supabase_client.py to manage a connection pool (if using asyncpg or SQLAlchemy) or initialize the client (if using supabase-py), using the SUPABASE_DB_URL from src.core.config. Include functions to acquire/release connections or sessions.
 
 AC: The module provides a mechanism to establish and manage connections/sessions to the Supabase Postgres database.
 
@@ -188,7 +188,7 @@ AC: Manually inserting data into triggered tables results in a correctly formatt
 
 AC: The directory src/cdc_listener/ and file listener.py exist.
 
-[x] Task 3.2.2: In listener.py, implement async code to establish a connection to the Supabase Postgres DB using asyncpg and the SUPABASE_DB_URL from core.config.
+[x] Task 3.2.2: In listener.py, implement async code to establish a connection to the Supabase Postgres DB using asyncpg and the SUPABASE_DB_URL from src.core.config.
 
 AC: The listener script can successfully connect to the Supabase database asynchronously.
 
@@ -855,7 +855,7 @@ AC: Obsolete SageMaker deployment targets for the fine-tuned model are removed f
 - Remove the section "Step 5: Generating the instruct dataset".
 - Remove the section "Step 6: Setting up AWS SageMaker" entirely, including creating the execution role.
 - Remove the section "Step 7: Starting the fine-tuning pipeline".
-- Update the "Configure" section to remove mentions of AWS_ARN_ROLE (if removed from core config) and DATASET_ID. Ensure OPENAI_API_KEY setup is clear.
+- Update the "Configure" section to remove mentions of AWS_ARN_ROLE (if removed from src.core config) and DATASET_ID. Ensure OPENAI_API_KEY setup is clear.
 - Update the "Cloud Services" table to remove SageMaker for training.
 - Remove dependencies listed for training (e.g., needing specific AWS permissions for training roles).
 - Update the evaluation steps (like "Step 8: Runing the evaluation pipelines") to reflect the changes made (e.g., no longer relying on instruct dataset artifacts).
@@ -973,3 +973,474 @@ AC: Usage examples in INSTALL_AND_USAGE.md correctly demonstrate interaction wit
 [ ] Task 9.7.4: Review INSTALL_AND_USAGE.md for any remaining references to AWS Lambda or AWS SageMaker endpoints in the context of core application deployment/usage (training pipeline usage might still involve SageMaker jobs, which is outside this refactoring's scope).
 
 AC: INSTALL_AND_USAGE.md is free of obsolete deployment/usage instructions related to Lambda/SageMaker endpoints for crawling and inference serving.
+
+Story 10: Define Embedding Client Abstraction
+Goal: Create a standard interface for embedding generation, decoupling high-level modules from specific implementations.
+
+Task 10.1.1: Create the directory src/core/embedding_clients.
+
+AC: The directory src/core/embedding_clients exists.
+
+Task 10.1.2: Inside src/core/embedding_clients, create a new file named base.py.
+
+AC: The file src/core/embedding_clients/base.py exists.
+
+Task 10.1.3: In src/core/embedding_clients/base.py, import necessary modules: abc (ABC, abstractmethod), typing (Any, List).
+
+AC: Imports from abc import ABC, abstractmethod and from typing import Any, List are present in base.py.
+
+Task 10.1.4: Define an abstract base class EmbeddingClientInterface inheriting from ABC in src/core/embedding_clients/base.py.
+
+AC: class EmbeddingClientInterface(ABC): exists in base.py.
+
+Task 10.1.5: Define an abstract asynchronous method embed within EmbeddingClientInterface.
+
+Signature: async def embed(self, texts: List[str], \*\*kwargs: Any) -> List[List[float]]:
+
+Decorate it with @abstractmethod.
+
+AC: The abstract method embed with the correct signature and decorator exists in EmbeddingClientInterface.
+
+Task 10.1.6: Add a clear docstring to the embed method explaining its purpose, arguments (especially texts for batching), return value (list of embedding vectors), and its asynchronous nature.
+
+AC: The embed method has a comprehensive docstring.
+
+Task 10.1.7: Create/Update the **init**.py file in src/core/embedding_clients/ to export the interface.
+
+Add: from .base import EmbeddingClientInterface
+
+Add: **all** = ["EmbeddingClientInterface"]
+
+AC: src/core/embedding_clients/**init**.py exists and exports EmbeddingClientInterface.
+
+Story 11: Implement Concrete OpenAI Embedding Client
+Goal: Create a specific client implementation to interact with the OpenAI embedding API.
+
+Task 11.1.1: Inside src/core/embedding_clients, create a new file named openai_client.py.
+
+AC: The file src/core/embedding_clients/openai_client.py exists.
+
+Task 11.1.2: In openai_client.py, import necessary modules: logging, typing (Any, Dict, List), openai, settings from src.core.config, and EmbeddingClientInterface from .base.
+
+AC: All required imports are present in openai_client.py.
+
+Task 11.1.3: Get a logger instance in openai_client.py (e.g., logger = logging.getLogger(**name**)).
+
+AC: A logger is initialized in the module.
+
+Task 11.1.4: Define the class OpenAIEmbeddingClient inheriting from EmbeddingClientInterface.
+
+AC: class OpenAIEmbeddingClient(EmbeddingClientInterface): exists.
+
+Task 11.2.1: Implement the **init** method for OpenAIEmbeddingClient.
+
+Log the initialization start.
+
+Check if settings.OPENAI_API_KEY is set. If not, log an error and raise a ValueError with a clear message.
+
+Instantiate the openai.AsyncOpenAI client using the API key from settings and store it as self.client.
+
+Wrap the client instantiation in a try...except block to catch potential errors during initialization (e.g., invalid key format), log the error, and re-raise.
+
+Log successful initialization.
+
+AC: **init** correctly initializes the openai.AsyncOpenAI client, checks for the API key, and includes logging and error handling.
+
+Task 11.3.1: Implement the async def embed(self, texts: List[str], \*\*kwargs: Any) -> List[List[float]] method in OpenAIEmbeddingClient.
+
+AC: The embed method exists with the correct signature matching the interface.
+
+Task 11.3.2: Inside embed, add a check for an empty texts list. If empty, log a warning and return an empty list [].
+
+AC: The method handles empty input gracefully.
+
+Task 11.3.3: Log the start of the API call, mentioning the model ID being used (read from settings.OPENAI_EMBEDDING_MODEL_ID - Requires adding this setting in Story 14).
+
+AC: Logging indicates the model being used.
+
+Task 11.3.4: Prepare the parameters for the OpenAI API call. Use settings.OPENAI_EMBEDDING_MODEL_ID for the model parameter. Merge any kwargs passed to the method (allowing overrides).
+
+AC: API parameters include the correct model ID.
+
+Task 11.3.5: Call await self.client.embeddings.create(model=..., input=texts, \*\*generation_params).
+
+AC: The asynchronous OpenAI API call is made correctly.
+
+Task 11.3.6: Wrap the API call in a try...except block to handle specific openai exceptions (AuthenticationError, RateLimitError, APIConnectionError, APIError, InvalidRequestError) and generic Exception. Log errors clearly, mentioning the type of error, and re-raise a generic Exception containing the original error message.
+
+AC: Robust error handling for OpenAI API calls is implemented.
+
+Task 11.3.7: Process the successful response:
+
+Check if response.data exists and is a list.
+
+Iterate through the response.data list. For each item, check if it has an embedding attribute which is a list of floats.
+
+Extract all embedding lists into a new list List[List[float]].
+
+If the response structure is unexpected or data is missing, log an error and raise an Exception.
+
+Log successful reception and parsing of embeddings.
+
+Return the extracted list of embeddings.
+
+AC: The API response is correctly parsed, validated, and returned in the format List[List[float]].
+
+Task 11.4.1: Update src/core/embedding_clients/**init**.py to also export the concrete client.
+
+Add: from .openai_client import OpenAIEmbeddingClient
+
+Update: **all** = ["EmbeddingClientInterface", "OpenAIEmbeddingClient"]
+
+AC: **init**.py exports both the interface and the OpenAI implementation.
+
+Story 12: Refactor Feature Pipeline Embedding Logic
+Goal: Modify the feature pipeline (Bytewax) to use the new EmbeddingClientInterface via dependency injection, removing direct calls to local embedding functions.
+
+Task 12.1.1: Modify src/feature_pipeline/data_logic/embedding_data_handlers.py: Add EmbeddingClientInterface import: from src.core.embedding_clients import EmbeddingClientInterface.
+
+AC: Import is added.
+
+Task 12.1.2: Modify the **init** method of PostEmbeddingHandler, ArticleEmbeddingHandler, and RepositoryEmbeddingHandler to accept an argument embedding_client: EmbeddingClientInterface and store it as self.embedding_client.
+
+AC: Handler **init** methods accept and store the embedding_client.
+
+Task 12.2.1: In the embedd method of PostEmbeddingHandler:
+
+Remove the call to the old embedd_text function.
+
+Call embeddings = await self.embedding_client.embed([data_model.chunk_content]).
+
+Get the first embedding: embedding_vector = embeddings[0] if embeddings else None. Handle the case where embeddings might be empty (though the client should raise an error before this).
+
+Instantiate PostEmbeddedChunkModel, passing embedding_vector to the embedded_content field. Verify/Ensure PostEmbeddedChunkModel.embedded_content type matches the client output (List[float]) or add conversion (e.g., np.array(embedding_vector) if model requires numpy array).
+
+AC: PostEmbeddingHandler.embedd uses the injected client, handles the result list, and correctly populates the PostEmbeddedChunkModel.
+
+Task 12.2.2: In the embedd method of ArticleEmbeddingHandler:
+
+Perform the same refactoring as in Task 12.2.1, but for ArticleChunkModel and ArticleEmbeddedChunkModel.
+
+AC: ArticleEmbeddingHandler.embedd uses the injected client and correctly populates the ArticleEmbeddedChunkModel.
+
+Task 12.2.3: In the embedd method of RepositoryEmbeddingHandler:
+
+Perform the same refactoring as in Task 12.2.1, but for RepositoryChunkModel and RepositoryEmbeddedChunkModel.
+
+AC: RepositoryEmbeddingHandler.embedd uses the injected client and correctly populates the RepositoryEmbeddedChunkModel.
+
+Task 12.3.1: Modify src/feature_pipeline/data_logic/dispatchers.py: Update EmbeddingHandlerFactory.create_handler.
+
+Change signature to create_handler(data_type: str, embedding_client: EmbeddingClientInterface) -> EmbeddingDataHandler:.
+
+Pass the received embedding_client when instantiating the specific handlers (e.g., return PostEmbeddingHandler(embedding_client=embedding_client)).
+
+AC: EmbeddingHandlerFactory accepts and passes the client to handlers.
+
+Task 12.3.2: Modify src/feature_pipeline/data_logic/dispatchers.py: Update EmbeddingDispatcher.dispatch_embedder.
+
+Change signature to dispatch_embedder(cls, data_model: DataModel, embedding_client: EmbeddingClientInterface) -> DataModel:.
+
+Pass the embedding_client when calling cls.cleaning_factory.create_handler(data_type, embedding_client=embedding_client).
+
+AC: EmbeddingDispatcher accepts and passes the client to the factory.
+
+Task 12.4.1: Modify src/feature_pipeline/main.py:
+
+Import the concrete client: from src.core.embedding_clients import OpenAIEmbeddingClient.
+
+Before the flow = Dataflow(...) line, instantiate the client: embedding_client = OpenAIEmbeddingClient(). Wrap in try/except, log errors, and potentially exit if initialization fails.
+
+Modify the op.map("embedded chunk dispatch", ...) step. Use a lambda function to pass both the data model and the client instance: lambda model: EmbeddingDispatcher.dispatch_embedder(model, embedding_client=embedding_client).
+
+AC: Bytewax flow instantiates the client once and injects it into the dispatcher map step.
+
+Task 12.5.1: Delete the file src/feature_pipeline/utils/embeddings.py.
+
+AC: The obsolete local embedding utility file is removed.
+
+Task 12.5.2: Check all files within src/feature_pipeline/ for any remaining imports or usage of the deleted utils.embeddings module or the old embedd_text function. Remove/update them.
+
+AC: No residual usage of the old embedding code exists in the feature pipeline.
+
+Task 12.6.1: Delete the file src/feature_pipeline/config.py.
+
+AC: The duplicate/obsolete config file is removed.
+
+Task 12.6.2: Search for any imports of feature_pipeline.config within the src/feature_pipeline directory (e.g., in utils/chunking.py, models/embedded_chunk.py). Replace them with imports from src.core.config.
+
+AC: All necessary configuration in the feature pipeline is now sourced from src/core/config.py.
+
+Story 13: Refactor RAG Retriever Embedding Logic
+Goal: Modify the VectorRetriever to use the injected EmbeddingClientInterface for embedding user queries.
+
+Task 13.1.1: Modify src/core/rag/retriever.py: Import the interface: from ..embedding_clients import EmbeddingClientInterface.
+
+AC: Import is added.
+
+Task 13.1.2: Modify VectorRetriever.**init**:
+
+Remove the self.\_embedder = SentenceTransformer(...) line.
+
+Add embedding_client: EmbeddingClientInterface as a required parameter to **init**.
+
+Store the passed client: self.embedding_client = embedding_client.
+
+AC: VectorRetriever constructor removes local embedder and accepts+stores an EmbeddingClientInterface.
+
+Task 13.2.1: Modify VectorRetriever.\_search_single_query:
+
+Replace query_vector = self.\_embedder.encode(generated_query).tolist() with the asynchronous call: embedding_result = await self.embedding_client.embed([generated_query]).
+
+Extract the vector: query_vector = embedding_result[0] if embedding_result else None. Add error handling or assertion if embedding_result is empty/None.
+
+Make the \_search_single_query method async because it now awaits the embedding client.
+
+AC: \_search_single_query is now async and uses the injected client to get the query vector.
+
+Task 13.2.2: Modify VectorRetriever.retrieve_top_k:
+
+Since \_search_single_query is now async, the parallel execution needs adjustment. Replace concurrent.futures.ThreadPoolExecutor with asynchronous task management.
+
+Create async tasks for each query: tasks = [asyncio.create_task(self._search_single_query(query, author_id, k)) for query in generated_queries].
+
+Wait for tasks to complete: results = await asyncio.gather(\*tasks).
+
+Update the flattening logic: hits = lib.flatten(results).
+
+Ensure asyncio is imported.
+
+AC: retrieve_top_k uses asyncio to run the async \_search_single_query tasks concurrently.
+
+Task 13.3.1: Modify src/inference_pipeline/llm_twin.py:
+
+Import the interface: from src.core.embedding_clients import EmbeddingClientInterface.
+
+Add embedding_client: EmbeddingClientInterface as a required parameter to the generate method signature.
+
+When instantiating VectorRetriever inside generate, pass the embedding_client: retriever = VectorRetriever(query=query, embedding_client=embedding_client).
+
+AC: LLMTwin.generate accepts and passes the embedding_client to the VectorRetriever.
+
+Task 13.4.1: Modify src/api/routers/inference.py:
+
+Inside the generate_response endpoint function, retrieve the embedding client from app state: embedding_client = request_obj.app.state.embedding_client.
+
+Add a check: if embedding_client is None, raise HTTPException(status_code=503, detail="Embedding service is not ready.").
+
+Pass the retrieved embedding_client when calling llm_twin_instance.generate: result = await llm_twin_instance.generate(..., embedding_client=embedding_client).
+
+AC: Inference API endpoint retrieves the embedding client from state and passes it to the LLMTwin.
+
+Task 13.5.1: Modify the test script src/feature_pipeline/retriever.py (if still used/relevant):
+
+Import OpenAIEmbeddingClient from src.core.embedding_clients.
+
+Instantiate the client: embedding_client = OpenAIEmbeddingClient(). Handle potential errors.
+
+Pass the embedding_client when creating VectorRetriever: retriever = VectorRetriever(query=query, embedding_client=embedding_client).
+
+Since retrieve_top_k is now async, wrap the call in asyncio.run() or make the main execution block async. E.g., hits = asyncio.run(retriever.retrieve_top_k(...)). Ensure asyncio is imported.
+
+AC: The retriever test script correctly instantiates and uses the OpenAIEmbeddingClient.
+
+Story 14: Configure and Manage Embedding Client Lifespan
+Goal: Ensure embedding clients are instantiated efficiently and configuration is centralized and up-to-date.
+
+Task 14.1.1: Modify src/api/main.py's lifespan context manager:
+
+Add app.state.embedding_client = None at the beginning.
+
+After Qdrant and LLM client initialization, add logic to initialize the embedding client.
+
+Import OpenAIEmbeddingClient (or the chosen implementation).
+
+Add logger.info("Initializing Embedding client...").
+
+Instantiate the client: embedding_client = OpenAIEmbeddingClient().
+
+Wrap instantiation in a try...except block. Catch ValueError (e.g., missing API key) and general Exception. Log errors appropriately. Set app.state.embedding_client = None within the except block.
+
+If successful, store the instance: app.state.embedding_client = embedding_client.
+
+Log success or failure of embedding client initialization.
+
+AC: Embedding client is initialized once during API startup and stored in app.state, with proper error handling and logging.
+
+Task 14.2.1: Modify src/core/config.py (AppSettings class):
+
+Add OPENAI_EMBEDDING_MODEL_ID: str = "text-embedding-3-small" (or another default).
+
+Add OPENAI_EMBEDDING_DIMENSIONS: int = 1536 (or the correct dimension for the chosen model).
+
+Ensure EMBEDDING_SIZE is set to the same value as OPENAI_EMBEDDING_DIMENSIONS. Update its default if necessary.
+
+Remove the old EMBEDDING_MODEL_ID setting (e.g., "BAAI/bge-small-en-v1.5").
+
+Remove EMBEDDING_MODEL_MAX_INPUT_LENGTH.
+
+Remove EMBEDDING_MODEL_DEVICE.
+
+AC: core/config.py contains necessary settings for the OpenAI embedding API and removes obsolete local model settings. EMBEDDING_SIZE matches the API model dimension.
+
+Task 14.3.1: Review src/core/db/qdrant.py: Ensure create_vector_collection uses settings.EMBEDDING_SIZE for the vector parameters size. (It already does, just verify).
+
+AC: Qdrant collection creation uses the correct embedding dimension from the updated settings.
+
+Story 15: Cleanup, Testing, and Configuration Update
+Goal: Verify the integrated system, perform cleanup, add/update tests, and ensure configuration is correct.
+
+Task 15.1.1: Review .env.example:
+
+Ensure OPENAI_API_KEY is present.
+
+Add OPENAI_EMBEDDING_MODEL_ID (optional if default in config.py is sufficient).
+
+Remove any environment variables related only to the old local embedding model (if any existed).
+
+AC: .env.example reflects necessary configuration for OpenAI API key and potentially the embedding model ID. Obsolete variables are removed.
+
+Task 15.1.2: Final review of src/core/config.py to ensure all settings are correctly defined, defaults are sensible, and no conflicts exist.
+
+AC: core/config.py is clean and accurate.
+
+Task 15.2.1: Review docker-compose.yml:
+
+Ensure api and feature_pipeline services have the OPENAI_API_KEY passed as an environment variable (from .env file).
+
+AC: Required services have access to the OpenAI API key via environment variables.
+
+Task 15.2.2: Review Dockerfiles (.docker/Dockerfile.api, .docker/Dockerfile.feature_pipeline):
+
+Ensure openai library is installed via poetry install.
+
+Remove installation steps for sentence-transformers, torch, onnxruntime (or other local embedding dependencies) if they are no longer needed for other purposes. Verify if they are still needed (e.g., Reranker might use ST). If Reranker uses ST, keep it.
+
+AC: Dockerfiles install required openai lib and remove unnecessary local embedding dependencies.
+
+Task 15.3.1: Review Makefile: Check that commands like local-start, apply-migrations, call-inference-pipeline, local-test-_, evaluate-_ are still relevant and function correctly. Update any commands if paths or dependencies changed significantly.
+
+AC: Makefile commands are functional with the refactored embedding logic.
+
+Task 15.4.1: Write unit tests for src/core/embedding_clients/openai_client.py.
+
+Mock the openai.AsyncOpenAI client and its embeddings.create method.
+
+Test successful embedding generation (correct input, output format).
+
+Test handling of empty input list.
+
+Test handling of various OpenAI API errors (mocking exceptions).
+
+Test **init** error handling (missing API key).
+
+AC: Unit tests cover the OpenAIEmbeddingClient functionality and error handling.
+
+Task 15.4.2: Update unit tests for src/feature_pipeline/data_logic/embedding_data_handlers.py.
+
+Mock the EmbeddingClientInterface.
+
+Instantiate handlers with the mocked client.
+
+Verify that the handler's embedd method calls the mocked client's embed method with the correct text content (wrapped in a list).
+
+Verify the handler correctly processes the mocked embedding result and populates the output model.
+
+AC: Unit tests for embedding handlers confirm correct interaction with the injected client.
+
+Task 15.4.3: Update unit tests for src/core/rag/retriever.py.
+
+Mock the EmbeddingClientInterface and QdrantClient.
+
+Instantiate VectorRetriever with the mocked embedding client.
+
+Test retrieve_top_k (and implicitly \_search_single_query): verify it calls the mocked embedding client's embed method with the correct query and uses the result in the mocked Qdrant search call. Test the async execution flow.
+
+AC: Unit tests for VectorRetriever verify correct usage of the injected embedding client.
+
+Task 15.4.4: Update integration/unit tests for src/api/routers/inference.py (test_inference.py).
+
+Ensure the TestClient setup provides a mocked embedding_client in app.state.
+
+Update tests calling the /generate endpoint to mock the embedding_client.embed call if needed during RAG simulation.
+
+Add a test case for when app.state.embedding_client is None (should return 503).
+
+AC: Inference endpoint tests are updated for the injected embedding client and cover ready/not-ready states.
+
+Task 15.5.1: Execute end-to-end test for feature pipeline:
+
+Start services (make local-start).
+
+Trigger a CDC event (e.g., insert data into a relevant Supabase table like articles or posts).
+
+Monitor cdc-listener logs for notification pickup and push to RabbitMQ.
+
+Monitor feature_pipeline logs for message consumption, processing (cleaning, chunking), and embedding calls (look for logs from OpenAIEmbeddingClient).
+
+Verify that data points are upserted into the corresponding Qdrant vector collection (vector_posts, vector_articles, etc.). Check Qdrant UI or use a client script to confirm points exist and have the correct embedding dimension (settings.EMBEDDING_SIZE).
+
+AC: Data flows from Supabase through CDC, RabbitMQ, Bytewax, gets embedded via OpenAI API, and lands in Qdrant with the correct dimensions.
+
+Task 15.5.2: Execute end-to-end test for RAG inference:
+
+Ensure data exists in Qdrant (from previous test or pre-populated).
+
+Start API service (make local-start).
+
+Call the inference endpoint (make call-inference-pipeline or curl) with use_rag=True and a query relevant to the data in Qdrant.
+
+Monitor api logs: Check logs from VectorRetriever showing query embedding via OpenAIEmbeddingClient, Qdrant search, and LLM call via OpenAIClient.
+
+Verify the final response is relevant to the query and likely used the retrieved context.
+
+AC: The inference endpoint successfully uses the API-based embedding for query embedding and RAG retrieval.
+
+Task 15.6.1: Review pyproject.toml and installed dependencies.
+
+Identify sentence-transformers and its heavy dependencies (like torch).
+
+If these are only used for the old embedding generation and not other features (e.g., reranking - check Reranker implementation), remove them from pyproject.toml.
+
+Run poetry lock --no-update then poetry install --sync to update the lock file and remove the unused packages from the environment.
+
+AC: Unnecessary local embedding dependencies are removed from the project.
+
+Story 16: Documentation Updates
+Goal: Update project documentation (README, etc.) to reflect the use of external API for embeddings.
+
+Task 16.1.1: Update Architecture Overview section in README.md.
+
+Modify descriptions/diagrams to show that embedding generation for both pipeline and query happens via an external API (e.g., OpenAI).
+
+Remove references to local Sentence Transformer models for embedding.
+
+AC: README accurately describes the embedding process using external APIs.
+
+Task 16.1.2: Update any detailed architecture diagrams if they exist and show the embedding component location/type.
+
+AC: Diagrams reflect the use of external embedding APIs.
+
+Task 16.2.1: Update Setup/Installation instructions in README.md or INSTALL_AND_USAGE.md.
+
+Clearly state the requirement for an OPENAI_API_KEY (or the key for the chosen provider) for embedding generation.
+
+Remove any instructions related to downloading local embedding models.
+
+Update environment variable lists (.env.example explanation) to include OPENAI_EMBEDDING_MODEL_ID if relevant.
+
+AC: Setup instructions correctly mention API key requirements and remove local model steps.
+
+Task 16.3.1: Update Configuration sections in documentation.
+
+Explain the new embedding-related settings in src/core/config.py (OPENAI_EMBEDDING_MODEL_ID, OPENAI_EMBEDDING_DIMENSIONS).
+
+Explain that EMBEDDING_SIZE must match the dimension of the chosen API model.
+
+Remove documentation for obsolete local model settings.
+
+AC: Configuration documentation accurately describes settings for API-based embeddings.
+
+Task 16.4.1: Review Usage Examples. Ensure they still function and don't implicitly rely on local embeddings if specific behavior was expected. (Likely no changes needed here, but review).
+
+AC: Usage examples remain valid.

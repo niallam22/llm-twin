@@ -1,13 +1,13 @@
-import asyncio
 from typing import Optional
 from urllib.parse import urlparse
 
 from aws_lambda_powertools import Logger
-from core.db.documents import ArticleDocument, UserDocument
 from langchain_community.document_loaders import AsyncHtmlLoader
 from langchain_community.document_transformers.html2text import Html2TextTransformer
 
-from .base import BaseCrawler
+from src.core.db.documents import ArticleDocument, UserDocument
+from src.core.db.supabase_client import SupabaseClient
+from src.data_crawling.crawlers.base import BaseCrawler
 
 logger = Logger(service="llm-twin-course/crawler")
 
@@ -18,7 +18,7 @@ class CustomArticleCrawler(BaseCrawler):
     def __init__(self) -> None:
         super().__init__()
 
-    async def extract(self, link: str, user: Optional[UserDocument] = None) -> None:
+    async def extract(self, link: str, db_client: SupabaseClient, user: Optional[UserDocument] = None) -> None:
         # The check for existing documents is handled by save_documents -> get_or_create
         # logger.info(f"Attempting to scrape article: {link}") # Optional: Change log message
 
@@ -47,6 +47,6 @@ class CustomArticleCrawler(BaseCrawler):
             platform=platform,
             author_id=user.id if user else None,
         )
-        await self.save_documents([instance])
+        await self.save_documents([instance], db_client=db_client)
 
         logger.info(f"Finished scrapping custom article: {link}")

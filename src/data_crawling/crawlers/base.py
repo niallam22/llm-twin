@@ -1,20 +1,19 @@
 import time
-import uuid
 from abc import ABC, abstractmethod
 from tempfile import mkdtemp
 from typing import List
 from uuid import UUID
 
 from pydantic import BaseModel
-
-from pydantic import BaseModel # Changed from BaseDocument
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
+from src.core.db.supabase_client import SupabaseClient
+
 
 class BaseCrawler(ABC):
-    model: type[BaseModel] # Changed from BaseDocument
-    author_id: UUID | None = None # To store author_id passed during extraction
+    model: type[BaseModel]  # Changed from BaseDocument
+    author_id: UUID | None = None  # To store author_id passed during extraction
 
     @abstractmethod
     async def extract(self, link: str, author_id: UUID | None = None, **kwargs) -> None:
@@ -23,12 +22,12 @@ class BaseCrawler(ABC):
         Specific implementations should create document instances using self.model
         and include self.author_id if it's provided.
         """
-        self.author_id = author_id # Store author_id for potential use in subclasses/save_documents
+        self.author_id = author_id  # Store author_id for potential use in subclasses/save_documents
         ...
 
-    async def save_documents(self, documents: List[BaseModel]) -> None:
+    async def save_documents(self, documents: List[BaseModel], db_client: SupabaseClient) -> None:
         """Saves a list of documents using the model's async bulk_insert."""
-        await self.model.bulk_insert(documents) # type: ignore[attr-defined] # Specific models have bulk_insert
+        await self.model.bulk_insert(documents, db_client=db_client)  # type: ignore[attr-defined] # Specific models have bulk_insert
 
 
 class BaseAbstractCrawler(BaseCrawler, ABC):
@@ -67,14 +66,10 @@ class BaseAbstractCrawler(BaseCrawler, ABC):
         current_scroll = 0
         last_height = self.driver.execute_script("return document.body.scrollHeight")
         while True:
-            self.driver.execute_script(
-                "window.scrollTo(0, document.body.scrollHeight);"
-            )
+            self.driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             time.sleep(5)
             new_height = self.driver.execute_script("return document.body.scrollHeight")
-            if new_height == last_height or (
-                self.scroll_limit and current_scroll >= self.scroll_limit
-            ):
+            if new_height == last_height or (self.scroll_limit and current_scroll >= self.scroll_limit):
                 break
             last_height = new_height
             current_scroll += 1

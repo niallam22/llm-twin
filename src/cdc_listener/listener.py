@@ -1,14 +1,15 @@
 import asyncio
-import asyncpg
-import logging
 import json
+import logging
 
-# Assuming PYTHONPATH is set up correctly or running from the project root
-# If not, adjust the import path as needed.
-from ..core.config import settings
-from ..core.mq import publish_to_rabbitmq
+import asyncpg
+
+from src.core.config import settings
+from src.core.mq import publish_to_rabbitmq
+
 # Configure basic logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+
 
 async def connect_db():
     """Establishes an asynchronous connection to the database."""
@@ -19,14 +20,14 @@ async def connect_db():
         return conn
     except asyncpg.PostgresError as e:
         logging.error(f"Failed to connect to database: {e}")
-        # Depending on the desired behavior, you might want to return None,
-        # re-raise the exception, or implement retry logic.
         return None
     except Exception as e:
         # Catch other potential exceptions during connection setup
         logging.error(f"An unexpected error occurred during database connection: {e}")
         return None
-# Callback function to handle notifications (now async)
+
+
+# Callback function to handle notifications
 async def handle_notification(connection, pid, channel, payload):
     logging.info(f"Received notification on channel '{channel}':")
     try:
@@ -49,16 +50,17 @@ async def handle_notification(connection, pid, channel, payload):
     except Exception as e:
         logging.error(f"  Error processing notification: {e}")
 
+
 async def listen_for_notifications(conn):
     """Listens for notifications on the specified channel."""
-    channel_name = "data_changes" # Channel defined in migration 0006
+    channel_name = "data_changes"  # Channel defined in migration 0006
     try:
         await conn.add_listener(channel_name, handle_notification)
         logging.info(f"Started listening on channel '{channel_name}'...")
         # Keep the listener running indefinitely until interrupted
         # In a real application, you'd have better shutdown handling (e.g., signals)
         while True:
-            await asyncio.sleep(1) # Keep the coroutine alive
+            await asyncio.sleep(1)  # Keep the coroutine alive
     except asyncpg.PostgresError as e:
         logging.error(f"Database error while listening: {e}")
     except Exception as e:
@@ -72,7 +74,9 @@ async def listen_for_notifications(conn):
         except Exception as e:
             logging.error(f"Error removing listener: {e}")
 
+
 if __name__ == "__main__":
+
     async def main():
         logging.info("Starting CDC listener...")
         conn = None

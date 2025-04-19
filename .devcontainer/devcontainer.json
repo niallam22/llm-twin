@@ -1,0 +1,61 @@
+// .devcontainer/devcontainer.json
+{
+  "name": "LLM Twin API Dev Container",
+
+  // Specify the docker-compose files to use.
+  // The override file is loaded after the base file, applying the changes.
+  "dockerComposeFile": [
+    "../docker-compose.yml", // Path relative to devcontainer.json
+    "../docker-compose.override.yml" // Path relative to devcontainer.json
+  ],
+
+  // The service within the docker-compose files that VS Code should connect to.
+  "service": "api",
+
+  // The folder inside the container where your project source code is located.
+  // This should match the WORKDIR in your Dockerfile and the volume mount target.
+  "workspaceFolder": "/app",
+
+  // Forward the port specified in docker-compose.yml (host_port:container_port)
+  // This makes localhost:8000 on your host machine connect to port 80 in the container.
+  "forwardPorts": [8000],
+
+  // VS Code specific settings and extensions to install inside the container.
+  "customizations": {
+    "vscode": {
+      "settings": {
+        // Example: Set Python path for the VS Code Python extension
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        // Add any other VS Code settings beneficial for development
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": true, // Or flake8, etc.
+        "python.formatting.provider": "black" // Or autopep8, etc.
+      },
+      "extensions": [
+        // Essential Python extension from Microsoft
+        "ms-python.python",
+        // Add other useful extensions for Python development:
+        "ms-python.vscode-pylance", // Language server (intellisense, etc.)
+        "ms-python.debugpy", // Python debugger
+        "ms-python.black-formatter", // Code formatter
+        "ms-python.flake8", // Linter (or pylint)
+        "njpwerner.autodocstring", // Help with docstrings
+        "ms-azuretools.vscode-docker" // Docker extension (useful inside container too)
+      ]
+    }
+  }
+
+  // Optional: Run commands after the container is created.
+  // Useful for tasks like installing git hooks if needed.
+  // "postCreateCommand": "echo 'Container created!'",
+
+  // Optional: Run commands after VS Code attaches to the container.
+  // Example: Automatically install pre-commit hooks if you use them
+  // "postAttachCommand": "pre-commit install",
+
+  // Optional: Run as a non-root user. 'vscode' is a common default.
+  // If you encounter permission issues (e.g., writing logs), you might need to
+  // adjust permissions in the Dockerfile or run as root (remove this line).
+  // "remoteUser": "vscode"
+  // Starting without remoteUser to default to the image user (likely root) for simplicity.
+}

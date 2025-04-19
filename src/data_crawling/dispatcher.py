@@ -1,14 +1,17 @@
 import re
 
 from aws_lambda_powertools import Logger
-from crawlers.base import BaseCrawler
-from crawlers.custom_article import CustomArticleCrawler
+
+from .crawlers.base import BaseCrawler
 
 logger = Logger(service="llm-twin-course/crawler")
 
+
 class NoCrawlerFoundError(Exception):
     """Custom exception raised when no suitable crawler is found for a URL."""
+
     pass
+
 
 class CrawlerDispatcher:
     def __init__(self) -> None:
