@@ -1,17 +1,20 @@
 # llm-twin-course/src/core/db/supabase_client.py
-import asyncpg
 import contextlib
 import logging
-from typing import AsyncGenerator, Optional, List, Any # Added List and Any
+from typing import Any, AsyncGenerator, List, Optional  # Added List and Any
 
-from ..config import settings
+import asyncpg
+
+from src.core.config import settings
 
 logger = logging.getLogger(__name__)
+
 
 class SupabaseClient:
     """
     Manages an asyncpg connection pool for interacting with the Supabase database.
     """
+
     _pool: Optional[asyncpg.Pool] = None
 
     async def connect(self) -> None:
@@ -24,7 +27,7 @@ class SupabaseClient:
                 self._pool = await asyncpg.create_pool(
                     dsn=settings.SUPABASE_DB_URL,
                     min_size=1,  # Minimum number of connections in the pool
-                    max_size=10, # Maximum number of connections in the pool
+                    max_size=10,  # Maximum number of connections in the pool
                 )
                 logger.info("Supabase connection pool created successfully.")
             except (asyncpg.PostgresError, OSError) as e:
@@ -60,15 +63,17 @@ class SupabaseClient:
         try:
             connection = await self._pool.acquire()
             if connection is None:
-                 # Should not happen with default acquire settings unless timeout occurs quickly
-                 raise asyncpg.PostgresError("Failed to acquire connection from pool (returned None).")
+                # Should not happen with default acquire settings unless timeout occurs quickly
+                raise asyncpg.PostgresError("Failed to acquire connection from pool (returned None).")
             yield connection
         except asyncpg.PostgresError as e:
             logger.error(f"Error acquiring or using Supabase connection: {e}")
-            raise # Re-raise the original error
+            raise  # Re-raise the original error
         finally:
             if connection:
+                # return connection to pool
                 await self._pool.release(connection)
+                logger.debug("connection returned to pool")
 
     async def execute(self, sql: str, params: Optional[List[Any]] = None) -> str:
         """
@@ -154,7 +159,3 @@ class SupabaseClient:
         except asyncpg.PostgresError as e:
             logger.error(f"Error fetching all with SQL: {sql}, params: {params} - Error: {e}")
             raise
-
-# Optional: Create a singleton instance if desired, though this might be better managed
-# at the application level (e.g., FastAPI lifespan events)
-# supabase_client = SupabaseClient()

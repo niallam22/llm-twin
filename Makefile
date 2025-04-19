@@ -17,38 +17,54 @@ help:
 
 local-start: # Build and start your local Docker infrastructure.
 	docker compose -f docker-compose.yml up --build -d
+	@echo "Waiting for PostgreSQL to be ready..."
+	@sleep 5  # Give some time for PostgreSQL to start
+	@docker exec llm-twin-postgres pg_isready -U postgres -d postgres || (echo "PostgreSQL is not ready yet. Waiting longer..." && sleep 10)
+	@echo "Infrastructure started successfully!"
+	@echo "Note: If this is the first time starting the container, migrations will be applied automatically."
+	@echo "For new migrations, use 'make apply-migrations'"
 
-local-stop: # Stop your local Docker infrastructure.
-	docker compose -f docker-compose.yml down --remove-orphans
+local-start-with-migrations: # Start infrastructure and explicitly apply migrations
+	$(MAKE) local-start
+	$(MAKE) apply-migrations
+
+# ======================================
+# ---------- Database Migrations -------
+# ======================================
+
+apply-migrations: # Manually apply database migrations to the running Postgres instance
+	@echo "Applying migrations to database..."
+	docker exec -it llm-twin-postgres bash -c 'mkdir -p /tmp/migrations && cp /migrations/*.sql /tmp/migrations/ && for m in $$(ls -1 /tmp/migrations/*.sql | sort -n); do echo "Applying $$(basename $$m)"; psql -U postgres -d postgres -f $$m; done'
+	@echo "Migrations applied successfully"
 
 # ======================================
 # ---------- Crawling Data -------------
 # ======================================
 
-local-test-medium: # Make a call to the local API to crawl a Medium article.
-	curl -X POST "http://localhost:8000/crawl/link" \
-		-H "Content-Type: application/json" \
-	  	-d '{"link": "https://medium.com/decodingml/an-end-to-end-framework-for-production-ready-llm-systems-by-building-your-llm-twin-2cc6bb01141f", "user_info": {"username": "test_user"}}'
+# local-test-medium: # Make a call to the local API to crawl a Medium article.
+# 	curl -X POST "http://localhost:8000/crawl/link" \
+# 		-H "Content-Type: application/json" \
+# 	  	-d '{"link": "https://medium.com/decodingml/an-end-to-end-framework-for-production-ready-llm-systems-by-building-your-llm-twin-2cc6bb01141f", "user_info": {"username": "test"}}'
 
-local-test-github: # Make a call to the local API to crawl a Github repository.
-	curl -X POST "http://localhost:8000/crawl/link" \
-		-H "Content-Type: application/json" \
-	  	-d '{"link": "https://github.com/decodingml/llm-twin-course", "user_info": {"username": "test_user"}}'
+# local-test-github: # Make a call to the local API to crawl a Github repository.
+# 	curl -X POST "http://localhost:8000/crawl/link" \
+# 		-H "Content-Type: application/json" \
+# 	  	-d '{"link": "https://github.com/decodingml/llm-twin-course", "user_info": {"username": "test_user"}}'
 
-local-ingest-data: # Ingest all links from data/links.txt by calling the local API /crawl/link endpoint.
-	while IFS= read -r link; do \
-		echo "Processing: $$link"; \
-		curl -X POST "http://localhost:8000/crawl/link" \
-			-H "Content-Type: application/json" \
-			-d "{\"link\": \"$$link\", \"user_info\": {\"username\": \"ingest_user\"}}"; \
-		echo "\n"; \
-		sleep 2; \
-	done < data/links.txt
+# local-ingest-data: # Ingest all links from data/links.txt by calling the local API /crawl/link endpoint.
+# 	while IFS= read -r link; do \
+# 		echo "Processing: $$link"; \
+# 		curl -X POST "http://localhost:8000/crawl/link" \
+# 			-H "Content-Type: application/json" \
+# 			-d "{\"link\": \"$$link\", \"user_info\": {\"username\": \"ingest_user\"}}"; \
+# 		echo "\n"; \
+# 		sleep 2; \
+# 	done < data/links.txt
 
 local-test-raw-text: # Make a call to the local API to submit raw text.
 	curl -X POST "http://localhost:8000/crawl/raw_text" \
 		-H "Content-Type: application/json" \
-		-d '{"text": "This is some raw text content provided via Makefile.", "user_info": {"username": "raw_text_user"}, "metadata": {"source_platform": "manual_input_makefile"}}'
+		-d '{"text": "Dolphins are among the most intelligent and social creatures in the ocean, possessing remarkable cognitive abilities that rival those of great apes. These marine mammals belong to the cetacean family and have evolved a complex social structure, communicating through an intricate system of clicks, whistles, and body language that researchers are still working to fully understand. Known for their playful nature, dolphins form strong social bonds within their pods, often engaging in cooperative hunting strategies that showcase their problem-solving abilities. Their brain-to-body mass ratio is second only to humans, enabling them to demonstrate self-awareness, tool usage, and even cultural learning where behaviors are passed down through generations. ", "user_info": {"username": "f_user"}, "metadata": {"source_platform": "manual_input_makefile"}}'
 
 # ======================================
 # -------- RAG Feature Pipeline --------
@@ -59,23 +75,20 @@ local-test-retriever: # Test the RAG retriever using your Poetry env
 
 
 # ===================================================
-# -- AWS SageMaker: Training & Inference pipelines --
+# ===================================================
+# -------- Inference Pipeline & Evaluation ----------
 # ===================================================
 
-
-
-
-
-
-
-call-inference-pipeline: # Call the local FastAPI inference endpoint.
-	curl -X POST "http://localhost:8000/generate" \
+call-inference: # Call the local FastAPI inference endpoint.
+	curl -X POST "http://localhost:8000/inference/generate" \
 		-H "Content-Type: application/json" \
-		-d '{"query": "What is RAG?", "use_rag": true}'
+		-d '{"query": "what is rag? give your answer in a poetic form", "use_rag": true}'
 
 
 local-start-ui: # Start the Gradio UI for chatting with your LLM Twin using your Poetry env.
 	cd src/inference_pipeline && poetry run python -m ui
+
+
 
 evaluate-llm: # Run evaluation tests on the LLM model's performance using your Poetry env.
 	cd src/inference_pipeline && poetry run python -m evaluation.evaluate
@@ -108,3 +121,6 @@ local-bytewax-superlinked: # Run the Bytewax streaming pipeline powered by Super
 
 local-test-retriever-superlinked: # Call the retrieval module and query the Superlinked server & vector DB
 	docker exec -it llm-twin-bytewax-superlinked python -m retriever
+
+
+

@@ -19,7 +19,7 @@ class InferenceTemplate(BasePromptTemplate):
 
         Step 1: You need to analyze the user's instruction.
         Step 2: You need to analyze the provided context and how the information in it relates to the user instruction.
-        Step 3: Generate the content keeping in mind that it needs to be as cohesive and concise as possible based on the query. You will use the users writing style and voice inferred from the user instruction and context.
+        Step 3: Determine which elements of the context are relevant to the query and generate one response keeping in mind that it needs to be as cohesive and concise as possible based on the query.
         First try to answer based on the context. If the context is irrelevant answer with "I cannot answer your question, as I don't have enough context."
         """
     rag_prompt_template: str = """

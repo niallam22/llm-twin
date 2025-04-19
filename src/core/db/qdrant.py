@@ -1,7 +1,7 @@
 from qdrant_client import QdrantClient, models
 from qdrant_client.http.models import Batch, Distance, VectorParams
 
-from .. import logger_utils 
+from .. import logger_utils
 from ..config import settings
 
 logger = logger_utils.get_logger(__name__)
@@ -29,17 +29,13 @@ class QdrantDatabaseConnector:
 
     def create_non_vector_collection(self, collection_name: str):
         assert self._instance is not None
-        self._instance.create_collection(
-            collection_name=collection_name, vectors_config={}
-        )
+        self._instance.create_collection(collection_name=collection_name, vectors_config={})
 
     def create_vector_collection(self, collection_name: str):
         assert self._instance is not None
         self._instance.create_collection(
             collection_name=collection_name,
-            vectors_config=VectorParams(
-                size=settings.EMBEDDING_SIZE, distance=Distance.COSINE
-            ),
+            vectors_config=VectorParams(size=settings.EMBEDDING_SIZE, distance=Distance.COSINE),
         )
 
     def write_data(self, collection_name: str, points: Batch):

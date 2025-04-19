@@ -1,15 +1,19 @@
+import logging
 from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ROOT_DIR = str(Path(__file__).parent.parent.parent)
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 
 class AppSettings(BaseSettings):
     model_config = SettingsConfigDict(env_file=f"{ROOT_DIR}/.env", env_file_encoding="utf-8")
 
     # Supabase config
-    SUPABASE_DB_URL: str | None = "postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+    SUPABASE_DB_URL: str
     # SUPABASE_URL: str
     # SUPABASE_KEY: str
 
@@ -17,7 +21,7 @@ class AppSettings(BaseSettings):
     RABBITMQ_DEFAULT_USERNAME: str = "guest"
     RABBITMQ_DEFAULT_PASSWORD: str = "guest"
     RABBITMQ_HOST: str = "mq"
-    RABBITMQ_PORT: int = 5673
+    RABBITMQ_PORT: int = 5672
     RABBITMQ_QUEUE_NAME: str = "data_changes_queue"  # Default queue name for CDC
 
     # QdrantDB config
@@ -29,7 +33,7 @@ class AppSettings(BaseSettings):
 
     # OpenAI config
     OPENAI_MODEL_ID: str = "gpt-4o-mini"
-    OPENAI_API_KEY: str | None = None
+    OPENAI_API_KEY: str
 
     # CometML config
     COMET_API_KEY: str | None = None
@@ -45,9 +49,9 @@ class AppSettings(BaseSettings):
     HF_TOKEN: str | None = None  # Renamed from HUGGINGFACE_ACCESS_TOKEN
 
     # Embeddings config
-    EMBEDDING_MODEL_ID: str = "BAAI/bge-small-en-v1.5"
-    EMBEDDING_MODEL_MAX_INPUT_LENGTH: int = 512
-    EMBEDDING_SIZE: int = 384
+    # EMBEDDING_MODEL_ID: str = "BAAI/bge-small-en-v1.5"
+    # EMBEDDING_MODEL_MAX_INPUT_LENGTH: int = 512
+    EMBEDDING_SIZE: int = 1536
     EMBEDDING_MODEL_DEVICE: str = "cpu"
     # RAG config
     TOP_K: int = 5

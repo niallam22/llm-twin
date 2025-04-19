@@ -1,6 +1,4 @@
-import opik
 from fastapi import APIRouter, HTTPException, Request, status  # Added Request
-from opik import opik_context
 
 from ...api.schemas.inference import InferenceRequest, InferenceResponse
 from ...core import logger_utils
@@ -16,7 +14,7 @@ llm_twin_instance = LLMTwin()
 
 
 @router.post("/generate", response_model=InferenceResponse, status_code=status.HTTP_200_OK)
-@opik.track(name="api.generate_inference")  # Task 6.3.4: Add Opik tracking
+# @opik.track(name="api.generate_inference")  # Task 6.3.4: Add Opik tracking
 async def generate_response(request: InferenceRequest, request_obj: Request):  # Added request_obj: Request
     """
     Generates a response using the LLM Twin model.
@@ -48,13 +46,16 @@ async def generate_response(request: InferenceRequest, request_obj: Request):  #
         if request.user_id:
             tags.append(f"user_id:{request.user_id}")  # Format user_id as a string tag
 
-        opik_context.update_current_trace(  # Correct usage
-            metadata={
-                "api_user_id": request.user_id,  # Keep in metadata too for easy viewing
-                "rag_used": request.use_rag,
-            },
-            tags=tags,  # Pass the list of string tags
-        )
+        # opik_context.update_current_trace(  # Correct usage
+        #     metadata={
+        #         "api_user_id": request.user_id,  # Keep in metadata too for easy viewing
+        #         "rag_used": request.use_rag,
+        #     },
+        #     tags=tags,  # Pass the list of string tags
+        # )
+
+        logger.info("111111111111111111111111111111111111111111")
+        logger.info(f"{result.get('answer')}")
 
         # Task 6.3.5: Format the result into InferenceResponse
         response = InferenceResponse(
