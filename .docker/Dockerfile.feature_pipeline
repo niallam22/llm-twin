@@ -38,13 +38,14 @@ RUN poetry config virtualenvs.create false && \
 WORKDIR $WORKSPACE_ROOT
 
 # Copy the feature pipeline and any other necessary directories
-COPY ./src/feature_pipeline .
-COPY ./src/core ./core
+# COPY ./src/feature_pipeline .
+# COPY ./src/core ./core
+COPY ./src /usr/src/app/src
 
 # Set the PYTHONPATH environment variable
 ENV PYTHONPATH=/usr/src/app
 
-RUN chmod +x /usr/src/app/scripts/bytewax_entrypoint.sh
+RUN chmod +x /usr/src/app/src/feature_pipeline/scripts/bytewax_entrypoint.sh
 
 # Command to run the Bytewax pipeline script
-CMD ["/usr/src/app/scripts/bytewax_entrypoint.sh"]
+CMD ["/usr/src/app/src/feature_pipeline/scripts/bytewax_entrypoint.sh"]

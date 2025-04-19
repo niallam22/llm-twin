@@ -26,7 +26,7 @@ RUN poetry config virtualenvs.create false
 RUN poetry install --no-interaction --no-ansi --no-root --only main
 
 # Copy the application source code
-COPY src/ /app/src/
+COPY src/ src/
 
 # Command to run the listener script
-CMD ["python", "src/cdc_listener/listener.py"]
+CMD ["python", "-m", "src.cdc_listener.listener"]
