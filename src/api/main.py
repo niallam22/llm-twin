@@ -1,12 +1,11 @@
 import logging
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 
+from src.api.key_validation import get_api_key
 from src.api.routers.crawling import router as crawling_router
 from src.api.routers.inference import router as inference_router
-
-# Assuming settings are loaded correctly from the core config
 from src.core.db.qdrant import QdrantDatabaseConnector
 from src.core.db.supabase_client import SupabaseClient
 from src.data_crawling.crawlers import CustomArticleCrawler, GithubCrawler, LinkedInCrawler, MediumCrawler
@@ -117,7 +116,7 @@ async def lifespan(app: FastAPI):
     logger.info("API shutdown complete.")
 
 
-app = FastAPI(lifespan=lifespan)  # Pass lifespan to FastAPI app
+app = FastAPI(lifespan=lifespan, dependencies=[Depends(get_api_key)])  # Pass lifespan to FastAPI app
 
 app.include_router(crawling_router)
 app.include_router(inference_router, prefix="/inference", tags=["inference"])

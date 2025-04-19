@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class AppSettings(BaseSettings):
     model_config = SettingsConfigDict(env_file=f"{ROOT_DIR}/.env", env_file_encoding="utf-8")
-
+    API_KEY: str | None
     # Supabase config
     SUPABASE_DB_URL: str
     # SUPABASE_URL: str

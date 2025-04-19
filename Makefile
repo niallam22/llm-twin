@@ -64,6 +64,7 @@ apply-migrations: # Manually apply database migrations to the running Postgres i
 local-test-raw-text: # Make a call to the local API to submit raw text.
 	curl -X POST "http://localhost:8000/crawl/raw_text" \
 		-H "Content-Type: application/json" \
+		-H "X-API-Key: this-is-a-test-key" \
 		-d '{"text": "Dolphins are among the most intelligent and social creatures in the ocean, possessing remarkable cognitive abilities that rival those of great apes. These marine mammals belong to the cetacean family and have evolved a complex social structure, communicating through an intricate system of clicks, whistles, and body language that researchers are still working to fully understand. Known for their playful nature, dolphins form strong social bonds within their pods, often engaging in cooperative hunting strategies that showcase their problem-solving abilities. Their brain-to-body mass ratio is second only to humans, enabling them to demonstrate self-awareness, tool usage, and even cultural learning where behaviors are passed down through generations. ", "user_info": {"username": "f_user"}, "metadata": {"source_platform": "manual_input_makefile"}}'
 
 # ======================================
@@ -82,6 +83,7 @@ local-test-retriever: # Test the RAG retriever using your Poetry env
 call-inference: # Call the local FastAPI inference endpoint.
 	curl -X POST "http://localhost:8000/inference/generate" \
 		-H "Content-Type: application/json" \
+		-H "X-API-Key: this-is-a-test-key" \
 		-d '{"query": "what is rag? give your answer in a poetic form", "use_rag": true}'
 
 
