@@ -38,6 +38,7 @@ class ArticleEmbeddedChunkModel(VectorDBDataModel):
     embedded_content: np.ndarray
     author_id: str
     type: str
+    collection_id: str
 
     class Config:
         arbitrary_types_allowed = True
@@ -50,6 +51,7 @@ class ArticleEmbeddedChunkModel(VectorDBDataModel):
             "link": self.link,
             "author_id": self.author_id,
             "type": self.type,
+            "collection_id": self.collection_id,
         }
 
         return self.chunk_id, self.embedded_content, data

@@ -1,4 +1,5 @@
 -- Trigger for repositories table on INSERT
+DROP TRIGGER IF EXISTS repositories_insert_trigger ON trigger;
 CREATE TRIGGER repositories_insert_trigger
 AFTER INSERT ON public.repositories -- Ensure schema is specified if needed
 FOR EACH ROW

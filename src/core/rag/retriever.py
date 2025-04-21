@@ -26,86 +26,90 @@ class VectorRetriever:
         self._metadata_extractor = SelfQuery()
         self._reranker = Reranker()
 
-    def _search_single_query(self, generated_query: str, author_id: str, k: int):
+    def _search_single_query(self, generated_query: str, author_id: str, k: int, collection_id: str):
         assert k > 3, "k should be greater than 3"
         logger.info(f"generated query     {generated_query}")
         query_vector = self._embedder(generated_query).tolist()
 
         vectors = [
-            self._client.search(
-                collection_name="vector_posts",
-                query_filter=models.Filter(
-                    must=[
-                        models.FieldCondition(
-                            key="author_id",
-                            match=models.MatchValue(
-                                value=author_id,
-                            ),
-                        )
-                    ]
-                    if author_id
-                    else None
-                ),
-                query_vector=query_vector,
-                limit=k // 3,
-            ),
+            # self._client.search(
+            #     collection_name="vector_posts",
+            #     query_filter=models.Filter(
+            #         must=[
+            #             models.FieldCondition(
+            #                 key="author_id",
+            #                 match=models.MatchValue(
+            #                     value=author_id,
+            #                 ),
+            #             )
+            #         ]
+            #         if author_id
+            #         else None
+            #     ),
+            #     query_vector=query_vector,
+            #     limit=k // 3,
+            # ),
             self._client.search(
                 collection_name="vector_articles",
                 query_filter=models.Filter(
                     must=[
                         models.FieldCondition(
-                            key="author_id",
+                            key="collection_id",
                             match=models.MatchValue(
-                                value=author_id,
+                                value=collection_id,
                             ),
                         )
                     ]
-                    if author_id
-                    else None
                 ),
                 query_vector=query_vector,
                 limit=k // 3,
             ),
-            self._client.search(
-                collection_name="vector_repositories",
-                query_filter=models.Filter(
-                    must=[
-                        models.FieldCondition(
-                            key="owner_id",
-                            match=models.MatchValue(
-                                value=author_id,
-                            ),
-                        )
-                    ]
-                    if author_id
-                    else None
-                ),
-                query_vector=query_vector,
-                limit=k // 3,
-            ),
+            # self._client.search(
+            #     collection_name="vector_repositories",
+            #     query_filter=models.Filter(
+            #         must=[
+            #             models.FieldCondition(
+            #                 key="owner_id",
+            #                 match=models.MatchValue(
+            #                     value=author_id,
+            #                 ),
+            #             )
+            #         ]
+            #         if author_id
+            #         else None
+            #     ),
+            #     query_vector=query_vector,
+            #     limit=k // 3,
+            # ),
         ]
 
         return lib.flatten(vectors)
 
     # @opik.track(name="retriever.retrieve_top_k")
-    async def retrieve_top_k(self, k: int, to_expand_to_n_queries: int) -> list:
+    async def retrieve_top_k(self, k: int, to_expand_to_n_queries: int, collection_id: str) -> list:
         generated_queries = self._query_expander.generate_response(self.query, to_expand_to_n=to_expand_to_n_queries)
         logger.info(
             "Successfully generated queries for search.",
             num_queries=len(generated_queries),
         )
+        author_id = None
 
-        author_id = await self._metadata_extractor.generate_response(self.query)
-        if author_id:
-            logger.info(
-                "Successfully extracted the author_id from the query.",
-                author_id=author_id,
-            )
-        else:
-            logger.warning("Did not found any author data in the user's prompt.")
+        # Not using selfquery
+        # author_id = await self._metadata_extractor.generate_response(self.query)
+        # if author_id:
+        #     logger.info(
+        #         "Successfully extracted the author_id from the query.",
+        #         author_id=author_id,
+        #     )
+        # else:
+
+        #     logger.warning("Did not found any author data in the user's prompt.")
 
         with concurrent.futures.ThreadPoolExecutor() as executor:
-            search_tasks = [executor.submit(self._search_single_query, query, author_id or "", k) for query in generated_queries]
+            search_tasks = [
+                executor.submit(self._search_single_query, query, author_id or "", k, collection_id=collection_id)
+                for query in generated_queries
+            ]
 
             hits = [task.result() for task in concurrent.futures.as_completed(search_tasks)]
             hits = lib.flatten(hits)

@@ -18,6 +18,7 @@ class ArticleRawModel(DataModel):
     url: str
     content: str
     author_id: str
+    collection_id: str
 
 
 class PostsRawModel(DataModel):

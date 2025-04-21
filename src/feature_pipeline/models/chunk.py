@@ -21,6 +21,7 @@ class ArticleChunkModel(DataModel):
     chunk_content: str
     author_id: str
     type: str
+    collection_id: str
 
 
 class RepositoryChunkModel(DataModel):

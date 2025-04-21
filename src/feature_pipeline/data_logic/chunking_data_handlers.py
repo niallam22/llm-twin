@@ -56,6 +56,7 @@ class ArticleChunkingHandler(ChunkingDataHandler):
                 chunk_content=chunk,
                 author_id=data_model.author_id,
                 type=data_model.type,
+                collection_id=data_model.collection_id,
             )
             data_models_list.append(model)
 

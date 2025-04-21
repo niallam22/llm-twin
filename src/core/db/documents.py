@@ -614,6 +614,7 @@ class ArticleDocument(BaseModel):
     link: str
     content: str
     author_id: UUID4 = Field(alias="author_id")
+    collection_id: str
 
     model_config = ConfigDict(from_attributes=True, populate_by_name=True)
 

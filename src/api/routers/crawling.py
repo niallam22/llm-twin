@@ -44,9 +44,6 @@ async def crawl_link(
     and initiates the crawling process.
     Returns HTTP 202 Accepted immediately as crawling might be asynchronous.
     """
-    # Implementation details for tasks 4.3.2 - 4.3.6 will follow
-
-    # Task 4.3.2: Get or create user
     try:
         user_data = request.user_info.model_dump(exclude_none=True)
         if not user_data:
@@ -75,14 +72,8 @@ async def crawl_link(
 
     # Task 4.3.5: Call crawler extract method
     try:
-        # Note: We are calling extract but not awaiting a result directly here.
-        # The actual saving/processing might happen within the crawler's extract method
-        # or be dispatched to a background task later.
-        # For now, we just initiate it.
         await crawler.extract(link=str(request.link), author_id=user.id)
 
-        # Task 4.3.6: Return success response
-        # Since the status code is 202 Accepted, we just confirm submission.
         return {"status": "Crawl submitted"}
 
     except Exception as e:
@@ -120,12 +111,7 @@ async def crawl_raw_text(
     # Use url from metadata for link, generate placeholder if None
     link_value = url if url else f"raw_text:{uuid.uuid4()}"
 
-    doc = ArticleDocument(
-        content=request.text,
-        author_id=user.id,
-        platform=platform,
-        link=link_value,
-    )
+    doc = ArticleDocument(content=request.text, author_id=user.id, platform=platform, link=link_value, collection_id=request.collection_id)
 
     try:
         await ArticleDocument.save(instance=doc, db_client=db_client)

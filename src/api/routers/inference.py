@@ -20,7 +20,7 @@ async def generate_response(request: InferenceRequest, request_obj: Request):  #
     Generates a response using the LLM Twin model.
     Optionally uses RAG based on the request parameters.
     """
-    logger.info(f"Received inference request: query='{request.query}', use_rag={request.use_rag}")
+    logger.info(f"Received inference request: query='{request.query}', use_rag={request.use_rag}, collection_id={request.collection_id}")
     try:
         # Access pre-loaded components from app state
         llm_client = request_obj.app.state.llm_client  # Retrieve the new client
@@ -35,6 +35,7 @@ async def generate_response(request: InferenceRequest, request_obj: Request):  #
         result = await llm_twin_instance.generate(  # Add await
             query=request.query,
             llm_client=llm_client,  # Pass the client
+            collection_id=request.collection_id,
             enable_rag=request.use_rag,
             # sample_for_evaluation=False # Assuming API calls aren't for evaluation sampling by default
         )
@@ -53,9 +54,6 @@ async def generate_response(request: InferenceRequest, request_obj: Request):  #
         #     },
         #     tags=tags,  # Pass the list of string tags
         # )
-
-        logger.info("111111111111111111111111111111111111111111")
-        logger.info(f"{result.get('answer')}")
 
         # Task 6.3.5: Format the result into InferenceResponse
         response = InferenceResponse(

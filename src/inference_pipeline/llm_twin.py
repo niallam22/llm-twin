@@ -24,6 +24,7 @@ class LLMTwin:
         query: str,
         llm_client: LLMClientInterface,  # Add the new client parameter
         # qdrant_client: QdrantClient, # Removed - VectorRetriever handles its own client
+        collection_id: str,
         enable_rag: bool = False,
         sample_for_evaluation: bool = False,
     ) -> dict:
@@ -33,7 +34,9 @@ class LLMTwin:
         if enable_rag is True:
             # VectorRetriever initializes its own Qdrant client internally
             retriever = VectorRetriever(query=query)  # Removed db_client argument
-            hits = await retriever.retrieve_top_k(k=settings.TOP_K, to_expand_to_n_queries=settings.EXPAND_N_QUERY)
+            hits = await retriever.retrieve_top_k(
+                k=settings.TOP_K, to_expand_to_n_queries=settings.EXPAND_N_QUERY, collection_id=collection_id
+            )
 
             # Rerank returns list[str], join them for the prompt context
             context_list = retriever.rerank(hits=hits, keep_top_k=settings.KEEP_TOP_K)

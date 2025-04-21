@@ -1,4 +1,5 @@
 -- Trigger for posts table on INSERT
+DROP TRIGGER IF EXISTS posts_insert_trigger ON posts;
 CREATE TRIGGER posts_insert_trigger
 AFTER INSERT ON public.posts -- Ensure schema is specified if needed
 FOR EACH ROW

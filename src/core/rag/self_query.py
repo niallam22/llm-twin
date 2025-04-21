@@ -28,6 +28,7 @@ class SelfQuery:
 
         response = chain.invoke({"question": query})
         response = response.content
+
         user_full_name = response.strip("\n ")
 
         if user_full_name == "none":
@@ -38,6 +39,7 @@ class SelfQuery:
             user_full_name=user_full_name,
         )
         first_name, last_name = lib.split_user_full_name(user_full_name)
+
         logger.info(
             "Successfully extracted the user first and last name from the query.",
             first_name=first_name,

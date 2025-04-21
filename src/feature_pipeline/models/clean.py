@@ -30,6 +30,7 @@ class ArticleCleanedModel(VectorDBDataModel):
     cleaned_content: str
     author_id: str
     type: str
+    collection_id: str
 
     def to_payload(self) -> Tuple[str, dict]:
         data = {
@@ -38,6 +39,7 @@ class ArticleCleanedModel(VectorDBDataModel):
             "cleaned_content": self.cleaned_content,
             "author_id": self.author_id,
             "type": self.type,
+            "collection_id": self.collection_id,
         }
 
         return self.entry_id, data

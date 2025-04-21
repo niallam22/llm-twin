@@ -66,6 +66,7 @@ class ArticleEmbeddingHandler(EmbeddingDataHandler):
             embedded_content=embedding_array,
             author_id=data_model.author_id,
             type=data_model.type,
+            collection_id=data_model.collection_id,
         )
 
 

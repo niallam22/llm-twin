@@ -44,6 +44,7 @@ class ArticleCleaningHandler(CleaningDataHandler):
             cleaned_content=data_model.content,  # clean_text(joined_text),
             author_id=data_model.author_id,
             type=data_model.type,
+            collection_id=data_model.collection_id,
         )
 
 
