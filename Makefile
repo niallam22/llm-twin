@@ -42,19 +42,19 @@ apply-migrations: # Manually apply database migrations to the running Postgres i
 # ======================================
 
 # local-test-medium: # Make a call to the local API to crawl a Medium article.
-# 	curl -X POST "http://localhost:8000/crawl/link" \
+# 	curl -X POST "http://localhost:8090/crawl/link" \
 # 		-H "Content-Type: application/json" \
 # 	  	-d '{"link": "https://medium.com/decodingml/an-end-to-end-framework-for-production-ready-llm-systems-by-building-your-llm-twin-2cc6bb01141f", "user_info": {"username": "test"}}'
 
 # local-test-github: # Make a call to the local API to crawl a Github repository.
-# 	curl -X POST "http://localhost:8000/crawl/link" \
+# 	curl -X POST "http://localhost:8090/crawl/link" \
 # 		-H "Content-Type: application/json" \
 # 	  	-d '{"link": "https://github.com/decodingml/llm-twin-course", "user_info": {"username": "test_user"}}'
 
 # local-ingest-data: # Ingest all links from data/links.txt by calling the local API /crawl/link endpoint.
 # 	while IFS= read -r link; do \
 # 		echo "Processing: $$link"; \
-# 		curl -X POST "http://localhost:8000/crawl/link" \
+# 		curl -X POST "http://localhost:8090/crawl/link" \
 # 			-H "Content-Type: application/json" \
 # 			-d "{\"link\": \"$$link\", \"user_info\": {\"username\": \"ingest_user\"}}"; \
 # 		echo "\n"; \
@@ -62,13 +62,13 @@ apply-migrations: # Manually apply database migrations to the running Postgres i
 # 	done < data/links.txt
 
 # local-test-raw-text: # Make a call to the local API to submit raw text.
-# 	curl -X POST "http://localhost:8000/crawl/raw_text" \
+# 	curl -X POST "http://localhost:8090/crawl/raw_text" \
 # 		-H "Content-Type: application/json" \
 # 		-H "X-API-Key: this-is-a-test-key" \
 # 		-d '{"text": "Dolphins are among the most intelligent and social creatures in the ocean, possessing remarkable cognitive abilities that rival those of great apes. These marine mammals belong to the cetacean family and have evolved a complex social structure, communicating through an intricate system of clicks, whistles, and body language that researchers are still working to fully understand. Known for their playful nature, dolphins form strong social bonds within their pods, often engaging in cooperative hunting strategies that showcase their problem-solving abilities. Their brain-to-body mass ratio is second only to humans, enabling them to demonstrate self-awareness, tool usage, and even cultural learning where behaviors are passed down through generations. ", "user_info": {"username": "f_user"}, "metadata": {"source_platform": "manual_input_makefile"}}'
 
 local-test-raw-text: # Make a call to the local API to submit raw text.
-	curl -X POST "http://localhost:8000/crawl/raw_text" \
+	curl -X POST "http://localhost:8090/crawl/raw_text" \
 	-H "Content-Type: application/json" \
 	-H "X-API-Key: this-is-a-test-key" \
 	-d '{"collection_id": "test-collection-123456", "text": "Dolphins are among the most intelligent and social creatures in the ocean, possessing remarkable cognitive abilities that rival those of great apes. These marine mammals belong to the cetacean family and have evolved a complex social structure, communicating through an intricate system of clicks, whistles, and body language that researchers are still working to fully understand. Known for their playful nature, dolphins form strong social bonds within their pods, often engaging in cooperative hunting strategies that showcase their problem-solving abilities. Their brain-to-body mass ratio is second only to humans, enabling them to demonstrate self-awareness, tool usage, and even cultural learning where behaviors are passed down through generations.", "user_info": {"username": "f_user"}, "metadata": {"source_platform": "manual_input_makefile"}}'
@@ -86,7 +86,7 @@ local-test-retriever: # Test the RAG retriever using your Poetry env
 # ===================================================
 
 call-inference: # Call the local FastAPI inference endpoint.
-	curl -X POST "http://localhost:8000/inference/generate" \
+	curl -X POST "http://localhost:8090/inference/generate" \
 		-H "Content-Type: application/json" \
 		-H "X-API-Key: this-is-a-test-key" \
 		-d '{"query": "what do you know about dolphins? give your answer in a poetic form", "use_rag": true, "collection_id": "test-collection-123456"}'

@@ -17,8 +17,8 @@
   "workspaceFolder": "/app",
 
   // Forward the port specified in docker-compose.yml (host_port:container_port)
-  // This makes localhost:8000 on your host machine connect to port 80 in the container.
-  "forwardPorts": [8000],
+  // This makes localhost:8090 on your host machine connect to port 80 in the container.
+  "forwardPorts": [8090],
 
   // VS Code specific settings and extensions to install inside the container.
   "customizations": {

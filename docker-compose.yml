@@ -80,7 +80,7 @@ services:
       context: .
       dockerfile: .docker/Dockerfile.api
     ports:
-      - "8000:80"
+      - "8090:80"
     env_file:
       - .env
     depends_on:
