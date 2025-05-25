@@ -20,6 +20,7 @@ from data_logic.embedding_data_handlers import (
     # RepositoryEmbeddingHandler,
 )
 from src.core import get_logger
+from src.core.db.minio_client import MinioClient
 
 logger = get_logger(__name__)
 
@@ -30,6 +31,28 @@ class RawDispatcher:
         table = message.get("table")
         operation = message.get("operation")
         data = message.get("data")
+        if not table or not operation or data is None:
+            logger.error("Invalid CDC message format received.", message=message)
+            raise ValueError("Invalid CDC message format: missing 'table', 'operation', or 'data'")
+
+        content = data.get("content")
+        if content and isinstance(content, str) and content.startswith("s3://"):
+            try:
+                object_id = content.replace("s3://", "")
+                minio_client = MinioClient()
+                bucket_name = "documents"  # or get from config/settings
+                retrieved_content = minio_client.retrieve_document(object_id, bucket_name)
+
+                if retrieved_content is not None:
+                    # Replace the S3 URI with actual content
+                    data["content"] = retrieved_content
+                    logger.info(f"Successfully retrieved content from S3 for object_id: {object_id}")
+                else:
+                    logger.error(f"Failed to retrieve content from S3 for object_id: {object_id}")
+
+            except Exception as e:
+                logger.error(f"Error retrieving content from S3: {e}")
+                # Decide how to handle the error - you might want to re-raise or continue
 
         if not table or not operation or data is None:
             logger.error("Invalid CDC message format received.", message=message)

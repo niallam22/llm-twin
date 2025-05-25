@@ -6,6 +6,7 @@ import asyncpg
 from pydantic import UUID4, BaseModel, ConfigDict, Field
 
 from .. import logger_utils
+from .minio_client import MinioClient
 from .supabase_client import SupabaseClient
 
 # Generic type variable for Pydantic models
@@ -634,6 +635,16 @@ class ArticleDocument(BaseModel):
             if "id" not in data:
                 data["id"] = uuid.uuid4()
 
+            content = data.get("content", "")
+            content_s3_uri = None
+
+            if content:
+                minio_client = MinioClient()
+                object_id, content_s3_uri = minio_client.store_document(content)
+
+            # Replace content with S3 URI
+            data["content"] = f"s3://{object_id}"
+
             # Map model fields to DB columns for SQL construction
             columns_model = list(data.keys())
             columns_db = [db_column_map.get(col, col) for col in columns_model]
@@ -751,6 +762,40 @@ class ArticleDocument(BaseModel):
         except Exception as e:
             logger.error(f"Unexpected error finding {cls.__name__} with criteria {kwargs}: {e}")
             return None
+
+    @classmethod
+    async def get_content(cls, instance: "ArticleDocument") -> str:
+        """Get full content, retrieving from MinIO if needed"""
+        content = instance.content
+
+        # Check if content is stored in MinIO
+        if content and content.startswith("s3://"):
+            object_id = content.replace("s3://", "")
+            minio_client = MinioClient()
+            retrieved_content = minio_client.retrieve_document(object_id)
+
+            if retrieved_content:
+                return retrieved_content
+            else:
+                return f"Error retrieving content from storage: {content}"
+
+        # Content is stored directly in the database
+        return content
+
+    @classmethod
+    async def find_one_with_content(
+        cls: Type["ArticleDocument"], db_client: SupabaseClient, **kwargs
+    ) -> typing.Optional["ArticleDocument"]:
+        """Finds a document and loads its full content from storage"""
+        # First find the document
+        instance = await cls.find_one(db_client, **kwargs)
+
+        if instance:
+            # Replace the S3 URI with actual content
+            content = await cls.get_content(instance)
+            instance.content = content
+
+        return instance
 
     @classmethod
     async def bulk_insert(cls: Type["ArticleDocument"], instances: typing.List["ArticleDocument"], db_client: SupabaseClient) -> None:

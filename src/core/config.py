@@ -17,6 +17,13 @@ class AppSettings(BaseSettings):
     # SUPABASE_URL: str
     # SUPABASE_KEY: str
 
+    # Minio
+    MINIO_HOST: str
+    MINIO_PORT: str
+    MINIO_ACCESS_KEY: str
+    MINIO_SECRET_KEY: str
+    MINIO_USE_SSL: str
+
     # MQ config
     RABBITMQ_DEFAULT_USERNAME: str = "guest"
     RABBITMQ_DEFAULT_PASSWORD: str = "guest"

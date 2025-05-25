@@ -119,5 +119,4 @@ async def crawl_raw_text(
         # Log the error e
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Failed to save raw text document: {e}")
 
-    # Task 4.4.6: Return success response
-    return {"status": "Raw text submitted", "document_id": str(doc.id)}
+    return {"status": 200, "message": "Raw text submitted", "document_id": str(doc.id)}
