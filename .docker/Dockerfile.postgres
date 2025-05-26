@@ -1,0 +1,12 @@
+# .docker/Dockerfile.postgres
+FROM postgres:15
+
+# Copy migration files and init script into the image
+COPY postgres/migrations/ /docker-entrypoint-initdb.d/migrations/
+COPY postgres/init-db.sh /docker-entrypoint-initdb.d/01-init-db.sh
+
+# Make the init script executable
+RUN chmod +x /docker-entrypoint-initdb.d/01-init-db.sh
+
+# Update the init script to reference the correct path
+RUN sed -i 's|/migrations/\*|/docker-entrypoint-initdb.d/migrations/*|g' /docker-entrypoint-initdb.d/01-init-db.sh
